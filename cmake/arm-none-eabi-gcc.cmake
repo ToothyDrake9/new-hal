@@ -1,0 +1,29 @@
+# Toolchain file for the GNU Arm Embedded toolchain.
+# Use: cmake -B build -DCMAKE_TOOLCHAIN_FILE=cmake/arm-none-eabi-gcc.cmake
+# Set ARM_TOOLCHAIN_DIR (cache or environment) when the compiler is not on the PATH.
+
+set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_SYSTEM_PROCESSOR arm)
+
+if(NOT ARM_TOOLCHAIN_DIR AND DEFINED ENV{ARM_TOOLCHAIN_DIR})
+	set(ARM_TOOLCHAIN_DIR $ENV{ARM_TOOLCHAIN_DIR})
+endif()
+
+if(ARM_TOOLCHAIN_DIR)
+	set(ARM_TOOLCHAIN_PREFIX ${ARM_TOOLCHAIN_DIR}/arm-none-eabi-)
+else()
+	set(ARM_TOOLCHAIN_PREFIX arm-none-eabi-)
+endif()
+
+set(CMAKE_C_COMPILER ${ARM_TOOLCHAIN_PREFIX}gcc)
+set(CMAKE_ASM_COMPILER ${ARM_TOOLCHAIN_PREFIX}gcc)
+set(CMAKE_OBJCOPY ${ARM_TOOLCHAIN_PREFIX}objcopy CACHE FILEPATH "")
+set(CMAKE_SIZE ${ARM_TOOLCHAIN_PREFIX}size CACHE FILEPATH "")
+
+# The compiler cannot link a program for the host: check it with a static library.
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+set(CMAKE_TRY_COMPILE_PLATFORM_VARIABLES ARM_TOOLCHAIN_DIR)
+
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
