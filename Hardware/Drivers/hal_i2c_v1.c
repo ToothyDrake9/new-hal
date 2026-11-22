@@ -17,19 +17,19 @@
 
 typedef struct
 {
-	HAL_GPIO_Pin m_stSclPin;
-	HAL_GPIO_Pin m_stSdaPin;
+	HAL_GPIO_PIN_T m_stSclPin;
+	HAL_GPIO_PIN_T m_stSdaPin;
 	uint16_t m_unFrequency;
 	uint16_t m_unClockControl;
 	uint16_t m_unRiseTime;
 	uint8_t m_ucConfigured;
 	uint8_t m_ucEnabled;
 	uint8_t m_ucHolding;   // A transfer ended without stop: the bus is ours and the clock is held low
-}HAL_I2C_Module_State;
+}HAL_I2C_MODULE_STATE_T;
 
-static HAL_I2C_Module_State g_astHAL_I2C_State[HAL_I2C_NO];
+static HAL_I2C_MODULE_STATE_T g_astHAL_I2C_State[HAL_I2C_NO];
 
-static const HAL_GPIO_Flags g_stHAL_I2C_PinFlags = { HAL_GPIO_MODE__FUNCTION, HAL_GPIO_TYPE__OPEN_DRAIN, HAL_GPIO_PULL__PULL_UP, HAL_GPIO_SPEED__MEDIUM, 0 };
+static const HAL_GPIO_FLAGS_T g_stHAL_I2C_PinFlags = { HAL_GPIO_MODE__FUNCTION, HAL_GPIO_TYPE__OPEN_DRAIN, HAL_GPIO_PULL__PULL_UP, HAL_GPIO_SPEED__MEDIUM, 0 };
 
 /**************************************************************************************************
  * @brief     Waits for a flag of the status register 1, watching the error flags
@@ -37,10 +37,10 @@ static const HAL_GPIO_Flags g_stHAL_I2C_PinFlags = { HAL_GPIO_MODE__FUNCTION, HA
  * @param[in] p_ulFlag - the flag to wait for
  * @return    HAL_SUCCESS, HAL_ERROR__NACK, HAL_ERROR__BUS or HAL_ERROR__TIMEOUT
  **************************************************************************************************/
-static HAL_Return_Code HAL_I2C_WaitFlag(const I2C_TypeDef *p_pstI2c, uint32_t p_ulFlag)
+static HAL_RETURN_CODE_T HAL_I2C_WaitFlag(const I2C_TypeDef *p_pstI2c, uint32_t p_ulFlag)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
-	HAL_CLOCK_Timeout l_stTimeout;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
+	HAL_CLOCK_TIMEOUT_T l_stTimeout;
 	uint32_t l_ulStatus;
 
 	HAL_CLOCK_TimeoutStart(&l_stTimeout, HAL_I2C_TIMEOUT_MS);
@@ -85,10 +85,10 @@ static HAL_Return_Code HAL_I2C_WaitFlag(const I2C_TypeDef *p_pstI2c, uint32_t p_
  * @return    HAL_SUCCESS or HAL_ERROR__TIMEOUT
  * @remarks   The control register must not be written while the stop bit is set.
  **************************************************************************************************/
-static HAL_Return_Code HAL_I2C_WaitStop(const I2C_TypeDef *p_pstI2c)
+static HAL_RETURN_CODE_T HAL_I2C_WaitStop(const I2C_TypeDef *p_pstI2c)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
-	HAL_CLOCK_Timeout l_stTimeout;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
+	HAL_CLOCK_TIMEOUT_T l_stTimeout;
 
 	HAL_CLOCK_TimeoutStart(&l_stTimeout, HAL_I2C_TIMEOUT_MS);
 
@@ -127,9 +127,9 @@ static void HAL_I2C_ClearAddress(const I2C_TypeDef *p_pstI2c)
  * @remarks   On success the address flag is still set: the caller clears it, at the point that
  *            the sequence it runs requires.
  **************************************************************************************************/
-static HAL_Return_Code HAL_I2C_Start(I2C_TypeDef *p_pstI2c, uint8_t p_ucAddressByte)
+static HAL_RETURN_CODE_T HAL_I2C_Start(I2C_TypeDef *p_pstI2c, uint8_t p_ucAddressByte)
 {
-	HAL_Return_Code l_eReturnCode;
+	HAL_RETURN_CODE_T l_eReturnCode;
 
 	/* Generate a start condition. */
 	p_pstI2c->CR1 |= I2C_CR1_START;
@@ -153,7 +153,7 @@ static HAL_Return_Code HAL_I2C_Start(I2C_TypeDef *p_pstI2c, uint8_t p_ucAddressB
  **************************************************************************************************/
 static void HAL_I2C_Apply(uint8_t p_ucModule)
 {
-	const HAL_I2C_Module_State *l_pstState = &g_astHAL_I2C_State[p_ucModule];
+	const HAL_I2C_MODULE_STATE_T *l_pstState = &g_astHAL_I2C_State[p_ucModule];
 	I2C_TypeDef *l_pstI2c = g_astHAL_I2C_Device[p_ucModule].m_pstRegisters;
 
 	/* Reset the module: this also frees its state machine after a bus fault. */
@@ -179,10 +179,10 @@ static void HAL_I2C_Apply(uint8_t p_ucModule)
  * @param[in] p_ucStop - HAL_I2C_STOP or HAL_I2C_NO_STOP
  * @return    HAL_SUCCESS, HAL_ERROR__NACK, HAL_ERROR__BUS or HAL_ERROR__TIMEOUT
  **************************************************************************************************/
-static HAL_Return_Code HAL_I2C_Send(uint8_t p_ucModule, uint8_t p_ucAddress, const uint8_t *p_pucBuff, uint16_t p_unSize, uint8_t p_ucStop)
+static HAL_RETURN_CODE_T HAL_I2C_Send(uint8_t p_ucModule, uint8_t p_ucAddress, const uint8_t *p_pucBuff, uint16_t p_unSize, uint8_t p_ucStop)
 {
 	I2C_TypeDef *l_pstI2c = g_astHAL_I2C_Device[p_ucModule].m_pstRegisters;
-	HAL_Return_Code l_eReturnCode;
+	HAL_RETURN_CODE_T l_eReturnCode;
 	uint16_t l_unIndex;
 
 	l_eReturnCode = HAL_I2C_Start(l_pstI2c, (uint8_t) (p_ucAddress << 1));
@@ -241,10 +241,10 @@ static HAL_Return_Code HAL_I2C_Send(uint8_t p_ucModule, uint8_t p_ucAddress, con
  *             different sequence for 1 byte, 2 bytes and more than 2 bytes. Interrupts are masked
  *             for the few instructions where a delay would let one byte too many through.
  **************************************************************************************************/
-static HAL_Return_Code HAL_I2C_Receive(uint8_t p_ucModule, uint8_t p_ucAddress, uint8_t *p_pucBuff, uint16_t p_unSize)
+static HAL_RETURN_CODE_T HAL_I2C_Receive(uint8_t p_ucModule, uint8_t p_ucAddress, uint8_t *p_pucBuff, uint16_t p_unSize)
 {
 	I2C_TypeDef *l_pstI2c = g_astHAL_I2C_Device[p_ucModule].m_pstRegisters;
-	HAL_Return_Code l_eReturnCode;
+	HAL_RETURN_CODE_T l_eReturnCode;
 	uint32_t l_ulState;
 	uint16_t l_unIndex = 0;
 
@@ -365,7 +365,7 @@ static HAL_Return_Code HAL_I2C_Receive(uint8_t p_ucModule, uint8_t p_ucAddress, 
 static void HAL_I2C_Abort(uint8_t p_ucModule)
 {
 	I2C_TypeDef *l_pstI2c = g_astHAL_I2C_Device[p_ucModule].m_pstRegisters;
-	HAL_CLOCK_Timeout l_stTimeout;
+	HAL_CLOCK_TIMEOUT_T l_stTimeout;
 	bool l_bBusy = false;
 
 	g_astHAL_I2C_State[p_ucModule].m_ucHolding = HAL_DISABLE;
@@ -401,10 +401,10 @@ static void HAL_I2C_Abort(uint8_t p_ucModule)
  * @param[in] p_ucAddress - the 7 bit slave address
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER, HAL_ERROR__NOT_CONFIGURED or HAL_ERROR__BUSY
  **************************************************************************************************/
-static HAL_Return_Code HAL_I2C_Begin(uint8_t p_ucModule, uint8_t p_ucAddress)
+static HAL_RETURN_CODE_T HAL_I2C_Begin(uint8_t p_ucModule, uint8_t p_ucAddress)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
-	HAL_CLOCK_Timeout l_stTimeout;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
+	HAL_CLOCK_TIMEOUT_T l_stTimeout;
 	const I2C_TypeDef *l_pstI2c;
 
 	if ((p_ucModule >= HAL_I2C_NO) || (p_ucAddress > 0x7FU))
@@ -452,11 +452,11 @@ static HAL_Return_Code HAL_I2C_Begin(uint8_t p_ucModule, uint8_t p_ucAddress)
  * @remarks   The pins are open drain with the internal pull-up, which is too weak to be the only
  *            one: the bus needs external pull-up resistors. The module is left disabled.
  **************************************************************************************************/
-HAL_Return_Code HAL_I2C_Config(uint8_t p_ucModule, const HAL_I2C_Flags *p_pstFlags)
+HAL_RETURN_CODE_T HAL_I2C_Config(uint8_t p_ucModule, const HAL_I2C_FLAGS_T *p_pstFlags)
 {
-	HAL_Return_Code l_eReturnCode = HAL_ERROR__PARAMETER;
-	const HAL_I2C_Device *l_pstDevice = NULL;
-	HAL_I2C_Module_State *l_pstState;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_ERROR__PARAMETER;
+	const HAL_I2C_DEVICE_T *l_pstDevice = NULL;
+	HAL_I2C_MODULE_STATE_T *l_pstState;
 
 	if ((p_ucModule < HAL_I2C_NO) && (p_pstFlags != NULL) && (p_pstFlags->m_stSclPin.m_ucModule != HAL_GPIO_NONE) && (p_pstFlags->m_stSdaPin.m_ucModule != HAL_GPIO_NONE))
 	{
@@ -503,9 +503,9 @@ HAL_Return_Code HAL_I2C_Config(uint8_t p_ucModule, const HAL_I2C_Flags *p_pstFla
  * @param[in] p_ucState - the I2C state (e.g. HAL_ENABLE)
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  **************************************************************************************************/
-HAL_Return_Code HAL_I2C_SetState(uint8_t p_ucModule, uint8_t p_ucState)
+HAL_RETURN_CODE_T HAL_I2C_SetState(uint8_t p_ucModule, uint8_t p_ucState)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
 
 	if (p_ucModule >= HAL_I2C_NO)
 	{
@@ -538,9 +538,9 @@ HAL_Return_Code HAL_I2C_SetState(uint8_t p_ucModule, uint8_t p_ucState)
  *            (the bus is held by something else), HAL_ERROR__PARAMETER, HAL_ERROR__NOT_CONFIGURED
  * @remarks   After any error a stop condition is generated and the bus is released.
  **************************************************************************************************/
-HAL_Return_Code HAL_I2C_Write(uint8_t p_ucModule, uint8_t p_ucAddress, const uint8_t *p_pucBuff, uint16_t p_unSize, uint8_t p_ucStop)
+HAL_RETURN_CODE_T HAL_I2C_Write(uint8_t p_ucModule, uint8_t p_ucAddress, const uint8_t *p_pucBuff, uint16_t p_unSize, uint8_t p_ucStop)
 {
-	HAL_Return_Code l_eReturnCode = HAL_I2C_Begin(p_ucModule, p_ucAddress);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_I2C_Begin(p_ucModule, p_ucAddress);
 
 	if ((l_eReturnCode == HAL_SUCCESS) && (p_pucBuff == NULL) && (p_unSize != 0U))
 	{
@@ -569,9 +569,9 @@ HAL_Return_Code HAL_I2C_Write(uint8_t p_ucModule, uint8_t p_ucAddress, const uin
  * @return     Same as HAL_I2C_Write
  * @remarks    The transfer always ends with a stop condition.
  **************************************************************************************************/
-HAL_Return_Code HAL_I2C_Read(uint8_t p_ucModule, uint8_t p_ucAddress, uint8_t *p_pucBuff, uint16_t p_unSize)
+HAL_RETURN_CODE_T HAL_I2C_Read(uint8_t p_ucModule, uint8_t p_ucAddress, uint8_t *p_pucBuff, uint16_t p_unSize)
 {
-	HAL_Return_Code l_eReturnCode = HAL_I2C_Begin(p_ucModule, p_ucAddress);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_I2C_Begin(p_ucModule, p_ucAddress);
 
 	if ((l_eReturnCode == HAL_SUCCESS) && ((p_pucBuff == NULL) || (p_unSize == 0U)))
 	{
@@ -601,9 +601,9 @@ HAL_Return_Code HAL_I2C_Read(uint8_t p_ucModule, uint8_t p_ucAddress, uint8_t *p
  * @param[in]  p_unRxSize - the number of bytes to read, at least 1
  * @return     Same as HAL_I2C_Write
  **************************************************************************************************/
-HAL_Return_Code HAL_I2C_WriteRead(uint8_t p_ucModule, uint8_t p_ucAddress, const uint8_t *p_pucTxBuff, uint16_t p_unTxSize, uint8_t *p_pucRxBuff, uint16_t p_unRxSize)
+HAL_RETURN_CODE_T HAL_I2C_WriteRead(uint8_t p_ucModule, uint8_t p_ucAddress, const uint8_t *p_pucTxBuff, uint16_t p_unTxSize, uint8_t *p_pucRxBuff, uint16_t p_unRxSize)
 {
-	HAL_Return_Code l_eReturnCode = HAL_I2C_Begin(p_ucModule, p_ucAddress);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_I2C_Begin(p_ucModule, p_ucAddress);
 
 	if ((l_eReturnCode == HAL_SUCCESS) && ((p_pucTxBuff == NULL) || (p_unTxSize == 0U) || (p_pucRxBuff == NULL) || (p_unRxSize == 0U)))
 	{
@@ -635,7 +635,7 @@ HAL_Return_Code HAL_I2C_WriteRead(uint8_t p_ucModule, uint8_t p_ucAddress, const
  * @return    HAL_SUCCESS when a device answers, HAL_ERROR__NACK when none does, or another error
  *            of HAL_I2C_Write
  **************************************************************************************************/
-HAL_Return_Code HAL_I2C_IsDeviceReady(uint8_t p_ucModule, uint8_t p_ucAddress)
+HAL_RETURN_CODE_T HAL_I2C_IsDeviceReady(uint8_t p_ucModule, uint8_t p_ucAddress)
 {
 	return HAL_I2C_Write(p_ucModule, p_ucAddress, NULL, 0, HAL_I2C_STOP);
 }
@@ -650,11 +650,11 @@ HAL_Return_Code HAL_I2C_IsDeviceReady(uint8_t p_ucModule, uint8_t p_ucAddress)
  *            and the module is reset and configured again. Called automatically when the bus
  *            stays busy.
  **************************************************************************************************/
-HAL_Return_Code HAL_I2C_Recover(uint8_t p_ucModule)
+HAL_RETURN_CODE_T HAL_I2C_Recover(uint8_t p_ucModule)
 {
-	static const HAL_GPIO_Flags l_stPinFlags = { HAL_GPIO_MODE__OUTPUT, HAL_GPIO_TYPE__OPEN_DRAIN, HAL_GPIO_PULL__PULL_UP, HAL_GPIO_SPEED__MEDIUM, 0 };
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
-	const HAL_I2C_Module_State *l_pstState;
+	static const HAL_GPIO_FLAGS_T l_stPinFlags = { HAL_GPIO_MODE__OUTPUT, HAL_GPIO_TYPE__OPEN_DRAIN, HAL_GPIO_PULL__PULL_UP, HAL_GPIO_SPEED__MEDIUM, 0 };
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
+	const HAL_I2C_MODULE_STATE_T *l_pstState;
 	uint8_t l_ucIndex;
 
 	if (p_ucModule >= HAL_I2C_NO)

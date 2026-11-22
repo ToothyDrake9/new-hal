@@ -14,23 +14,23 @@
 
 typedef struct
 {
-	HAL_SPI_RX_CALLBACK m_pfRxCallback;
-	HAL_SPI_TX_CALLBACK m_pfTxCallback;
-	HAL_SPI_ERROR_CALLBACK m_pfErrorCallback;
+	HAL_SPI_RX_CALLBACK_T m_pfRxCallback;
+	HAL_SPI_TX_CALLBACK_T m_pfTxCallback;
+	HAL_SPI_ERROR_CALLBACK_T m_pfErrorCallback;
 	void *m_pvContext;
 	uint8_t m_ucConfigured;
-}HAL_SPI_Module_State;
+}HAL_SPI_MODULE_STATE_T;
 
-static HAL_SPI_Module_State g_astHAL_SPI_State[HAL_SPI_NO];
+static HAL_SPI_MODULE_STATE_T g_astHAL_SPI_State[HAL_SPI_NO];
 
 /**************************************************************************************************
  * @brief     Checks a module argument
  * @param[in] p_ucModule - the SPI module (e.g. HAL_SPI_0)
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  **************************************************************************************************/
-static HAL_Return_Code HAL_SPI_Check(uint8_t p_ucModule)
+static HAL_RETURN_CODE_T HAL_SPI_Check(uint8_t p_ucModule)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
 
 	if (p_ucModule >= HAL_SPI_NO)
 	{
@@ -91,12 +91,12 @@ static uint8_t HAL_SPI_ClearErrors(SPI_TypeDef *p_pstSpi, uint32_t p_ulStatus)
  * @remarks   Frames are 8 bits. The module is left disabled: call HAL_SPI_SetState. In master
  *            mode the chip select of each device is a plain GPIO driven by the caller.
  **************************************************************************************************/
-HAL_Return_Code HAL_SPI_Config(uint8_t p_ucModule, const HAL_SPI_Flags *p_pstFlags)
+HAL_RETURN_CODE_T HAL_SPI_Config(uint8_t p_ucModule, const HAL_SPI_FLAGS_T *p_pstFlags)
 {
-	static const HAL_GPIO_Flags l_stPinFlags = { HAL_GPIO_MODE__FUNCTION, HAL_GPIO_TYPE__PUSH_PULL, HAL_GPIO_PULL__NO_PULL, HAL_GPIO_SPEED__VERY_HIGH, 0 };
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
-	const HAL_SPI_Device *l_pstDevice = NULL;
-	HAL_SPI_Module_State *l_pstState;
+	static const HAL_GPIO_FLAGS_T l_stPinFlags = { HAL_GPIO_MODE__FUNCTION, HAL_GPIO_TYPE__PUSH_PULL, HAL_GPIO_PULL__NO_PULL, HAL_GPIO_SPEED__VERY_HIGH, 0 };
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
+	const HAL_SPI_DEVICE_T *l_pstDevice = NULL;
+	HAL_SPI_MODULE_STATE_T *l_pstState;
 	SPI_TypeDef *l_pstSpi;
 	uint32_t l_ulControl = 0;
 	uint32_t l_ulSpeed = 0;
@@ -208,9 +208,9 @@ HAL_Return_Code HAL_SPI_Config(uint8_t p_ucModule, const HAL_SPI_Flags *p_pstFla
  * @param[in] p_ucState - the SPI state (e.g. HAL_ENABLE)
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  **************************************************************************************************/
-HAL_Return_Code HAL_SPI_SetState(uint8_t p_ucModule, uint8_t p_ucState)
+HAL_RETURN_CODE_T HAL_SPI_SetState(uint8_t p_ucModule, uint8_t p_ucState)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SPI_Check(p_ucModule);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SPI_Check(p_ucModule);
 
 	if (l_eReturnCode == HAL_SUCCESS)
 	{
@@ -237,9 +237,9 @@ HAL_Return_Code HAL_SPI_SetState(uint8_t p_ucModule, uint8_t p_ucState)
  * @remarks   The error interrupt follows HAL_SPI_RX. Do not use the blocking transfer functions
  *            while an interrupt source of the module is enabled.
  **************************************************************************************************/
-HAL_Return_Code HAL_SPI_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucInterrupt, uint8_t p_ucState)
+HAL_RETURN_CODE_T HAL_SPI_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucInterrupt, uint8_t p_ucState)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SPI_Check(p_ucModule);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SPI_Check(p_ucModule);
 	uint32_t l_ulMask = 0;
 
 	if (l_eReturnCode == HAL_SUCCESS)
@@ -289,9 +289,9 @@ HAL_Return_Code HAL_SPI_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucInterrupt, 
  * @param[out] p_pulSpeed - the clock in Hz
  * @return     HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  **************************************************************************************************/
-HAL_Return_Code HAL_SPI_GetSpeed(uint8_t p_ucModule, uint32_t *p_pulSpeed)
+HAL_RETURN_CODE_T HAL_SPI_GetSpeed(uint8_t p_ucModule, uint32_t *p_pulSpeed)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SPI_Check(p_ucModule);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SPI_Check(p_ucModule);
 	uint32_t l_ulCode;
 
 	if ((l_eReturnCode == HAL_SUCCESS) && (p_pulSpeed == NULL))
@@ -316,10 +316,10 @@ HAL_Return_Code HAL_SPI_GetSpeed(uint8_t p_ucModule, uint32_t *p_pulSpeed)
  * @param[out] p_pucByte - the byte that was received
  * @return     HAL_SUCCESS, HAL_ERROR__TIMEOUT or HAL_ERROR__BUS
  **************************************************************************************************/
-static HAL_Return_Code HAL_SPI_Exchange(SPI_TypeDef *p_pstSpi, uint8_t p_ucByte, uint8_t *p_pucByte)
+static HAL_RETURN_CODE_T HAL_SPI_Exchange(SPI_TypeDef *p_pstSpi, uint8_t p_ucByte, uint8_t *p_pucByte)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
-	HAL_CLOCK_Timeout l_stTimeout;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
+	HAL_CLOCK_TIMEOUT_T l_stTimeout;
 	uint32_t l_ulStatus;
 
 	HAL_CLOCK_TimeoutStart(&l_stTimeout, HAL_SPI_TIMEOUT_MS);
@@ -379,9 +379,9 @@ static HAL_Return_Code HAL_SPI_Exchange(SPI_TypeDef *p_pstSpi, uint8_t p_ucByte,
  * @return     HAL_SUCCESS, HAL_ERROR__TIMEOUT (module disabled, or a slave that got no clock),
  *             HAL_ERROR__BUS (overrun or mode fault), HAL_ERROR__PARAMETER, HAL_ERROR__NOT_CONFIGURED
  **************************************************************************************************/
-HAL_Return_Code HAL_SPI_TransferByte(uint8_t p_ucModule, uint8_t p_ucByte, uint8_t *p_pucByte)
+HAL_RETURN_CODE_T HAL_SPI_TransferByte(uint8_t p_ucModule, uint8_t p_ucByte, uint8_t *p_pucByte)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SPI_Check(p_ucModule);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SPI_Check(p_ucModule);
 	uint8_t l_ucByte = 0;
 
 	if (l_eReturnCode == HAL_SUCCESS)
@@ -407,10 +407,10 @@ HAL_Return_Code HAL_SPI_TransferByte(uint8_t p_ucModule, uint8_t p_ucByte, uint8
  * @return     Same as HAL_SPI_TransferByte; the transfer stops at the first error
  * @remarks    The chip select is not touched: drive it around this call.
  **************************************************************************************************/
-HAL_Return_Code HAL_SPI_Transfer(uint8_t p_ucModule, const uint8_t *p_pucTxBuff, uint8_t *p_pucRxBuff, uint16_t p_unSize)
+HAL_RETURN_CODE_T HAL_SPI_Transfer(uint8_t p_ucModule, const uint8_t *p_pucTxBuff, uint8_t *p_pucRxBuff, uint16_t p_unSize)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SPI_Check(p_ucModule);
-	HAL_CLOCK_Timeout l_stTimeout;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SPI_Check(p_ucModule);
+	HAL_CLOCK_TIMEOUT_T l_stTimeout;
 	SPI_TypeDef *l_pstSpi;
 	uint16_t l_unIndex;
 	uint8_t l_ucByte = 0;
@@ -456,9 +456,9 @@ HAL_Return_Code HAL_SPI_Transfer(uint8_t p_ucModule, const uint8_t *p_pucTxBuff,
  * @param[in] p_unSize - the buffer size
  * @return    Same as HAL_SPI_Transfer
  **************************************************************************************************/
-HAL_Return_Code HAL_SPI_WriteBuff(uint8_t p_ucModule, const uint8_t *p_pucBuff, uint16_t p_unSize)
+HAL_RETURN_CODE_T HAL_SPI_WriteBuff(uint8_t p_ucModule, const uint8_t *p_pucBuff, uint16_t p_unSize)
 {
-	HAL_Return_Code l_eReturnCode = HAL_ERROR__PARAMETER;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_ERROR__PARAMETER;
 
 	if ((p_pucBuff != NULL) || (p_unSize == 0U))
 	{
@@ -475,9 +475,9 @@ HAL_Return_Code HAL_SPI_WriteBuff(uint8_t p_ucModule, const uint8_t *p_pucBuff, 
  * @param[in]  p_unSize - the buffer size
  * @return     Same as HAL_SPI_Transfer
  **************************************************************************************************/
-HAL_Return_Code HAL_SPI_ReadBuff(uint8_t p_ucModule, uint8_t *p_pucBuff, uint16_t p_unSize)
+HAL_RETURN_CODE_T HAL_SPI_ReadBuff(uint8_t p_ucModule, uint8_t *p_pucBuff, uint16_t p_unSize)
 {
-	HAL_Return_Code l_eReturnCode = HAL_ERROR__PARAMETER;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_ERROR__PARAMETER;
 
 	if ((p_pucBuff != NULL) || (p_unSize == 0U))
 	{
@@ -495,7 +495,7 @@ HAL_Return_Code HAL_SPI_ReadBuff(uint8_t p_ucModule, uint8_t *p_pucBuff, uint16_
  **************************************************************************************************/
 static void HAL_SPI_Interrupt(uint8_t p_ucModule)
 {
-	const HAL_SPI_Module_State *l_pstState = &g_astHAL_SPI_State[p_ucModule];
+	const HAL_SPI_MODULE_STATE_T *l_pstState = &g_astHAL_SPI_State[p_ucModule];
 	SPI_TypeDef *l_pstSpi = g_astHAL_SPI_Device[p_ucModule].m_pstRegisters;
 	uint32_t l_ulStatus = l_pstSpi->SR;
 	uint32_t l_ulControl = l_pstSpi->CR2;

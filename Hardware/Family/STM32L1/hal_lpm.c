@@ -12,10 +12,10 @@
 #include "hal_clock.h"
 #include "hal_private.h"
 
-static const HAL_LPM_Flags g_stHAL_LPM_Default;
+static const HAL_LPM_FLAGS_T g_stHAL_LPM_Default;
 
-static HAL_CLOCK_Flags g_stHAL_LPM_SavedClock;
-static HAL_LPM_Flags g_stHAL_LPM_RunFlags;
+static HAL_CLOCK_FLAGS_T g_stHAL_LPM_SavedClock;
+static HAL_LPM_FLAGS_T g_stHAL_LPM_RunFlags;
 static uint8_t g_ucHAL_LPM_LowPowerRun;
 
 /**************************************************************************************************
@@ -25,10 +25,10 @@ static uint8_t g_ucHAL_LPM_LowPowerRun;
  *          goes to low power. Peripheral dividers computed for the previous clock are wrong
  *          until the mode is left.
  **************************************************************************************************/
-static HAL_Return_Code HAL_LPM_EnterLowPowerRun(void)
+static HAL_RETURN_CODE_T HAL_LPM_EnterLowPowerRun(void)
 {
-	HAL_Return_Code l_eReturnCode;
-	HAL_CLOCK_Flags l_stClock;
+	HAL_RETURN_CODE_T l_eReturnCode;
+	HAL_CLOCK_FLAGS_T l_stClock;
 
 	HAL_CLOCK_GetFlags(&g_stHAL_LPM_SavedClock);
 
@@ -58,10 +58,10 @@ static HAL_Return_Code HAL_LPM_EnterLowPowerRun(void)
  * @brief   Leaves the low-power run conditions and restores the clock that ran before
  * @return  HAL_SUCCESS, HAL_ERROR__TIMEOUT, or the error of the clock change
  **************************************************************************************************/
-static HAL_Return_Code HAL_LPM_ExitLowPowerRun(void)
+static HAL_RETURN_CODE_T HAL_LPM_ExitLowPowerRun(void)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
-	HAL_CLOCK_Timeout l_stTimeout;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
+	HAL_CLOCK_TIMEOUT_T l_stTimeout;
 
 	/* The low-power run bit must be cleared before the low-power deep sleep bit. */
 	HAL_PRIVATE_Modify(&PWR->CR, PWR_CR_LPRUN, 0);
@@ -94,7 +94,7 @@ static HAL_Return_Code HAL_LPM_ExitLowPowerRun(void)
  * @brief     Stops the core until an interrupt arrives
  * @param[in] p_pstFlags - the low power flags
  **************************************************************************************************/
-static void HAL_LPM_Sleep(const HAL_LPM_Flags *p_pstFlags)
+static void HAL_LPM_Sleep(const HAL_LPM_FLAGS_T *p_pstFlags)
 {
 	if (!p_pstFlags->m_ucKeepTick)
 	{
@@ -129,11 +129,11 @@ static void HAL_LPM_Sleep(const HAL_LPM_Flags *p_pstFlags)
  *            Low-power run: returns at once; leave it with HAL_LPM_Exit.
  *            Standby: does not return. After the wake-up reset, HAL_LPM_WasInStandby tells it.
  **************************************************************************************************/
-HAL_Return_Code HAL_LPM_Enter(uint8_t p_ucMode, const HAL_LPM_Flags *p_pstFlags)
+HAL_RETURN_CODE_T HAL_LPM_Enter(uint8_t p_ucMode, const HAL_LPM_FLAGS_T *p_pstFlags)
 {
-	static const HAL_ClockGate l_stPower = { &RCC->APB1ENR, RCC_APB1ENR_PWREN };
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
-	HAL_Return_Code l_eExitReturnCode;
+	static const HAL_CLOCK_GATE_T l_stPower = { &RCC->APB1ENR, RCC_APB1ENR_PWREN };
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
+	HAL_RETURN_CODE_T l_eExitReturnCode;
 	uint32_t l_ulControl;
 
 	if (p_pstFlags == NULL)
@@ -303,9 +303,9 @@ HAL_Return_Code HAL_LPM_Enter(uint8_t p_ucMode, const HAL_LPM_Flags *p_pstFlags)
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER (another mode), HAL_ERROR__NOT_CONFIGURED (the
  *            mode is not active), HAL_ERROR__TIMEOUT, or the error of the clock module
  **************************************************************************************************/
-HAL_Return_Code HAL_LPM_Exit(uint8_t p_ucMode)
+HAL_RETURN_CODE_T HAL_LPM_Exit(uint8_t p_ucMode)
 {
-	HAL_Return_Code l_eReturnCode;
+	HAL_RETURN_CODE_T l_eReturnCode;
 
 	if (p_ucMode != HAL_LPM_MODE__LOW_POWER_RUN)
 	{
@@ -334,7 +334,7 @@ HAL_Return_Code HAL_LPM_Exit(uint8_t p_ucMode)
  **************************************************************************************************/
 bool HAL_LPM_WasInStandby(void)
 {
-	static const HAL_ClockGate l_stPower = { &RCC->APB1ENR, RCC_APB1ENR_PWREN };
+	static const HAL_CLOCK_GATE_T l_stPower = { &RCC->APB1ENR, RCC_APB1ENR_PWREN };
 	bool l_bStandby;
 
 	HAL_PRIVATE_ClockEnable(&l_stPower);

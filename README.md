@@ -5,8 +5,9 @@ access. The first target is the STM32L152RE (NUCLEO-L152RE).
 
 It replaces the HAL that was copied by hand into each project (`Core/Hardware/hal_*.c`). The
 naming conventions of that HAL are kept: `HAL_MODULE_Function`, `p_`/`l_`/`g_`/`m_` scope
-prefixes, `uc`/`un`/`ul`/`st`/`pf` type prefixes, `HAL_X__VALUE` constants, `HAL_xxx_Flags`
-configuration structures.
+prefixes, `uc`/`un`/`ul`/`st`/`pf` type prefixes, `HAL_X__VALUE` constants. Every type defined
+with `typedef` (structures, enumerations, function pointers) is written in capitals with a `_T`
+suffix: `HAL_UART_FLAGS_T`, `HAL_RETURN_CODE_T`, `HAL_UART_RX_CALLBACK_T`.
 
 ## Status
 
@@ -81,8 +82,8 @@ static void APP_RxCallback(void *p_pvContext, uint8_t p_ucByte)
 
 int main(void)
 {
-	static const HAL_CLOCK_Flags l_stClock = BOARD_CLOCK_FLAGS;
-	static const HAL_UART_Flags l_stUart =
+	static const HAL_CLOCK_FLAGS_T l_stClock = BOARD_CLOCK_FLAGS;
+	static const HAL_UART_FLAGS_T l_stUart =
 	{
 		.m_ulBaud = 115200,
 		.m_stTxPin = BOARD_VCP_TX_PIN,
@@ -111,7 +112,7 @@ int main(void)
 
 ## Rules the code follows
 
-1. **Every function that can fail returns a `HAL_Return_Code`.** `HAL_SUCCESS` is 0. The
+1. **Every function that can fail returns a `HAL_RETURN_CODE_T`.** `HAL_SUCCESS` is 0. The
    exceptions are the inline pin functions and `HAL_TIMER_GetCounter`, which are used in timing
    critical code and do not check their arguments.
 2. **Every wait has a timeout.** Timeouts are measured on the SysTick counter itself, so they work
@@ -139,6 +140,7 @@ int main(void)
 |---|---|
 | `HAL_ERROR` is 0, `HAL_SUCCESS` is 1 | `HAL_SUCCESS` is 0. `if (HAL_xxx())` now means "if it failed". |
 | `HAL_xxx_Config(module, ..., flags)` by value | `HAL_xxx_Config(module, &flags)` by `const` pointer |
+| Type names such as `HAL_UART_Flags`, `HAL_Return_Code` | `HAL_UART_FLAGS_T`, `HAL_RETURN_CODE_T`: capitals and `_T` for every `typedef` |
 | 71 mandatory `HAL_xxx_n_Callback` functions | Callbacks in the flags. Delete the empty ones. |
 | `HAL_UART_n_RxCallback` then `HAL_UART_ReadByte` | The callback receives the byte. |
 | `HAL_UART_n_TxCallback` | The callback returns the next byte, or `HAL_UART_TX__DONE`. |
@@ -175,13 +177,13 @@ The radio driver and the TSCH stack of WirelessControl have not been migrated.
 | 5 | Disabling one source disabled the NVIC line | `HAL_xxx_SetInterrupt` only changes the enable bit of the source |
 | 6 | `HAL_GPIO_Config` always set an NVIC priority | Priority moved to `HAL_GPIO_ConfigInterrupt`; a different priority on a shared line is `HAL_ERROR__CONFLICT` |
 | 7 | Wrong pins for USART3 and UART5 | No pin in the HAL; `board.h` gives them |
-| 8 | Wrong alternate function for SPI3 | The function travels with the pin (`HAL_GPIO_Pin`) |
+| 8 | Wrong alternate function for SPI3 | The function travels with the pin (`HAL_GPIO_PIN_T`) |
 | 9 | Config functions only ORed bits in | Whole register or cleared field, in every driver |
 | 10 | Baud rate from SYSCLK, truncated | `HAL_CALC_UartDivider` on the bus clock, rounded, range checked |
 | 11 | Wake-up flag not cleared, `LPRUN` misused | `hal_lpm.c`: `CWUF` written as 1; `LPRUN` only with MSI 131 kHz in range 2 |
 | 12 | ADC died after a clock switch | `HAL_CLOCK_RequestHsi` / `ReleaseHsi`; restarted after stop mode |
 | 13 | Half page programming from flash, no error check | `HAL_FLASH_WriteHalfPage` in `.ramfunc` with interrupts masked; error flags checked everywhere |
-| 14 | No timeouts | `HAL_CLOCK_Timeout` in every wait: clock, UART, SPI, I2C, ADC, flash, low power |
+| 14 | No timeouts | `HAL_CLOCK_TIMEOUT_T` in every wait: clock, UART, SPI, I2C, ADC, flash, low power |
 | 15 | No error reporting | Return codes; UART and SPI error callbacks; I2C NACK, bus error, arbitration loss |
 | 16 | No parameter checks | Every public function with a status return checks its arguments |
 | 17 | Worked only at `-O0` | No shared SysTick flag; builds and is tested at every optimisation level |

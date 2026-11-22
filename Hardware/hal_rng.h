@@ -11,7 +11,7 @@
 #include "typedefs.h"
 #include "hal_port.h"
 
-HAL_Return_Code HAL_RNG_Config(void);
-HAL_Return_Code HAL_RNG_Read(uint32_t *p_pulValue);
+HAL_RETURN_CODE_T HAL_RNG_Config(void);
+HAL_RETURN_CODE_T HAL_RNG_Read(uint32_t *p_pulValue);
 
 #endif /* HAL_RNG_H_ */

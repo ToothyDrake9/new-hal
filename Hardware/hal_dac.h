@@ -17,11 +17,11 @@
 typedef struct
 {
 	uint8_t m_ucBuffer : 1;   // HAL_ENABLE - output buffer on (lower output impedance, output cannot reach the rails)
-	HAL_GPIO_Pin m_stPin;     // The analog output pin; module HAL_GPIO_NONE to leave the pin alone
-}HAL_DAC_Flags;
+	HAL_GPIO_PIN_T m_stPin;     // The analog output pin; module HAL_GPIO_NONE to leave the pin alone
+}HAL_DAC_FLAGS_T;
 
-HAL_Return_Code HAL_DAC_Config(uint8_t p_ucModule, const HAL_DAC_Flags *p_pstFlags);
-HAL_Return_Code HAL_DAC_SetState(uint8_t p_ucModule, uint8_t p_ucState);
-HAL_Return_Code HAL_DAC_Write(uint8_t p_ucModule, uint16_t p_unValue);
+HAL_RETURN_CODE_T HAL_DAC_Config(uint8_t p_ucModule, const HAL_DAC_FLAGS_T *p_pstFlags);
+HAL_RETURN_CODE_T HAL_DAC_SetState(uint8_t p_ucModule, uint8_t p_ucState);
+HAL_RETURN_CODE_T HAL_DAC_Write(uint8_t p_ucModule, uint16_t p_unValue);
 
 #endif /* HAL_DAC_H_ */

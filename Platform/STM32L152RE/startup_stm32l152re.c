@@ -94,13 +94,13 @@ HAL_WEAK_HANDLER(DMA2_Channel4_IRQHandler);
 HAL_WEAK_HANDLER(DMA2_Channel5_IRQHandler);
 HAL_WEAK_HANDLER(COMP_ACQ_IRQHandler);
 
-typedef void (*HAL_VECTOR) (void);
+typedef void (*HAL_VECTOR_T) (void);
 
 /* The first entry is the initial stack pointer; the linker script keeps this section first. */
 __attribute__((section(".isr_vector"), used))
-const HAL_VECTOR g_apfVectors[] =
+const HAL_VECTOR_T g_apfVectors[] =
 {
-	(HAL_VECTOR) (uintptr_t) &_estack,
+	(HAL_VECTOR_T) (uintptr_t) &_estack,
 	Reset_Handler,
 	NMI_Handler,
 	HardFault_Handler,

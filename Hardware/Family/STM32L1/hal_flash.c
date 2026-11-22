@@ -23,10 +23,10 @@
  * @return  HAL_SUCCESS, HAL_ERROR__TIMEOUT, or HAL_ERROR__BUS when an error flag was set (write
  *          protection, alignment, size, option validity)
  **************************************************************************************************/
-static HAL_Return_Code HAL_FLASH_Wait(void)
+static HAL_RETURN_CODE_T HAL_FLASH_Wait(void)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
-	HAL_CLOCK_Timeout l_stTimeout;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
+	HAL_CLOCK_TIMEOUT_T l_stTimeout;
 
 	HAL_CLOCK_TimeoutStart(&l_stTimeout, HAL_FLASH_TIMEOUT_MS);
 
@@ -58,9 +58,9 @@ static HAL_Return_Code HAL_FLASH_Wait(void)
  * @param[in] p_ulAlignment - the required alignment of the address in bytes
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER, HAL_ERROR__NOT_CONFIGURED (locked) or HAL_ERROR__BUSY
  **************************************************************************************************/
-static HAL_Return_Code HAL_FLASH_Check(uint32_t p_ulAddress, uint32_t p_ulSize, uint32_t p_ulAlignment)
+static HAL_RETURN_CODE_T HAL_FLASH_Check(uint32_t p_ulAddress, uint32_t p_ulSize, uint32_t p_ulAlignment)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
 
 	if ((p_ulAddress < FLASH_BASE) || (p_ulAddress > FLASH_END) || (p_ulSize > (FLASH_END + 1UL - p_ulAddress)) || ((p_ulAddress % p_ulAlignment) != 0U))
 	{
@@ -124,9 +124,9 @@ static HAL_FLASH_RAM_FUNCTION uint32_t HAL_FLASH_WriteHalfPage(volatile uint32_t
  * @return  HAL_SUCCESS, or HAL_ERROR when the memory stays locked (a wrong key sequence was
  *          written since the last reset)
  **************************************************************************************************/
-HAL_Return_Code HAL_FLASH_Unlock(void)
+HAL_RETURN_CODE_T HAL_FLASH_Unlock(void)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
 	uint32_t l_ulState = HAL_PRIVATE_EnterCritical();
 
 	/* The two keys of a pair must be written one after the other. */
@@ -156,7 +156,7 @@ HAL_Return_Code HAL_FLASH_Unlock(void)
  * @brief   FLASH lock
  * @return  HAL_SUCCESS
  **************************************************************************************************/
-HAL_Return_Code HAL_FLASH_Lock(void)
+HAL_RETURN_CODE_T HAL_FLASH_Lock(void)
 {
 	FLASH->PECR |= FLASH_PECR_PRGLOCK;
 	FLASH->PECR |= FLASH_PECR_PELOCK;
@@ -191,9 +191,9 @@ uint32_t HAL_FLASH_GetPageAddress(uint16_t p_unPage)
  *            write protected)
  * @remarks   The page that holds the running code can be erased too: check the page number.
  **************************************************************************************************/
-HAL_Return_Code HAL_FLASH_PageErase(uint16_t p_unPage)
+HAL_RETURN_CODE_T HAL_FLASH_PageErase(uint16_t p_unPage)
 {
-	HAL_Return_Code l_eReturnCode = HAL_ERROR__PARAMETER;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_ERROR__PARAMETER;
 	uint32_t l_ulAddress = HAL_FLASH_GetPageAddress(p_unPage);
 
 	if (l_ulAddress != 0U)
@@ -225,7 +225,7 @@ HAL_Return_Code HAL_FLASH_PageErase(uint16_t p_unPage)
  * @return  HAL_ERROR__NOT_SUPPORTED: this family has no mass erase command for the program
  *          memory. Erase the pages one by one with HAL_FLASH_PageErase.
  **************************************************************************************************/
-HAL_Return_Code HAL_FLASH_MassErase(void)
+HAL_RETURN_CODE_T HAL_FLASH_MassErase(void)
 {
 	return HAL_ERROR__NOT_SUPPORTED;
 }
@@ -237,9 +237,9 @@ HAL_Return_Code HAL_FLASH_MassErase(void)
  * @return    Same as HAL_FLASH_PageErase
  * @remarks   The word must be erased (zero on this family) before it is written.
  **************************************************************************************************/
-HAL_Return_Code HAL_FLASH_Program(uint32_t p_ulAddress, uint32_t p_ulData)
+HAL_RETURN_CODE_T HAL_FLASH_Program(uint32_t p_ulAddress, uint32_t p_ulData)
 {
-	HAL_Return_Code l_eReturnCode = HAL_FLASH_Check(p_ulAddress, 4, 4);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_FLASH_Check(p_ulAddress, 4, 4);
 
 	if (l_eReturnCode == HAL_SUCCESS)
 	{
@@ -265,9 +265,9 @@ HAL_Return_Code HAL_FLASH_Program(uint32_t p_ulAddress, uint32_t p_ulData)
  * @param[in] p_unSize - the number of words
  * @return    Same as HAL_FLASH_Program; the operation stops at the first error
  **************************************************************************************************/
-HAL_Return_Code HAL_FLASH_ProgramBuff(uint32_t p_ulAddress, const uint32_t *p_pulData, uint16_t p_unSize)
+HAL_RETURN_CODE_T HAL_FLASH_ProgramBuff(uint32_t p_ulAddress, const uint32_t *p_pulData, uint16_t p_unSize)
 {
-	HAL_Return_Code l_eReturnCode = HAL_FLASH_Check(p_ulAddress, 4UL * p_unSize, 4);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_FLASH_Check(p_ulAddress, 4UL * p_unSize, 4);
 	uint16_t l_unIndex;
 
 	if ((l_eReturnCode == HAL_SUCCESS) && (p_pulData == NULL) && (p_unSize != 0U))
@@ -291,9 +291,9 @@ HAL_Return_Code HAL_FLASH_ProgramBuff(uint32_t p_ulAddress, const uint32_t *p_pu
  * @remarks   Interrupts are masked for the duration of the write (a few milliseconds): the flash
  *            memory cannot be read meanwhile, so no interrupt handler could run.
  **************************************************************************************************/
-HAL_Return_Code HAL_FLASH_FastProgram(uint32_t p_ulAddress, const uint32_t *p_pulData)
+HAL_RETURN_CODE_T HAL_FLASH_FastProgram(uint32_t p_ulAddress, const uint32_t *p_pulData)
 {
-	HAL_Return_Code l_eReturnCode = HAL_FLASH_Check(p_ulAddress, HAL_FLASH_HALF_PAGE_SIZE, HAL_FLASH_HALF_PAGE_SIZE);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_FLASH_Check(p_ulAddress, HAL_FLASH_HALF_PAGE_SIZE, HAL_FLASH_HALF_PAGE_SIZE);
 	uint32_t l_ulStatus;
 	uint32_t l_ulState;
 

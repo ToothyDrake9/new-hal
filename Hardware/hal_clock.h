@@ -107,7 +107,7 @@ enum HAL_CLOCK_Bus
 #endif
 
 /* Runs in interrupt context, once per millisecond. */
-typedef void (*HAL_CLOCK_TICK_CALLBACK) (void *p_pvContext);
+typedef void (*HAL_CLOCK_TICK_CALLBACK_T) (void *p_pvContext);
 
 typedef struct
 {
@@ -123,34 +123,34 @@ typedef struct
 	uint8_t m_ucApb1Prescaler;    // e.g. HAL_CLOCK_APB__1
 	uint8_t m_ucApb2Prescaler;    // e.g. HAL_CLOCK_APB__1
 	uint8_t m_ucLse;              // LSE oscillator mode (e.g. HAL_CLOCK_OSCILLATOR__CRYSTAL)
-	HAL_Interrupt m_stInterrupt;  // Priority of the 1 ms tick
-	HAL_CLOCK_TICK_CALLBACK m_pfTickCallback; // NULL - no callback
+	HAL_INTERRUPT_T m_stInterrupt;  // Priority of the 1 ms tick
+	HAL_CLOCK_TICK_CALLBACK_T m_pfTickCallback; // NULL - no callback
 	void *m_pvContext;            // Given back to the callback
-}HAL_CLOCK_Flags;
+}HAL_CLOCK_FLAGS_T;
 
 /* State of one timeout. Poll it with HAL_CLOCK_TimeoutExpired at least once per millisecond. */
 typedef struct
 {
 	uint32_t m_ulRemaining;
 	uint32_t m_ulLast;
-}HAL_CLOCK_Timeout;
+}HAL_CLOCK_TIMEOUT_T;
 
-HAL_Return_Code HAL_CLOCK_Init(const HAL_CLOCK_Flags *p_pstFlags);
-HAL_Return_Code HAL_CLOCK_Update(const HAL_CLOCK_Flags *p_pstFlags);
-void HAL_CLOCK_GetFlags(HAL_CLOCK_Flags *p_pstFlags);
+HAL_RETURN_CODE_T HAL_CLOCK_Init(const HAL_CLOCK_FLAGS_T *p_pstFlags);
+HAL_RETURN_CODE_T HAL_CLOCK_Update(const HAL_CLOCK_FLAGS_T *p_pstFlags);
+void HAL_CLOCK_GetFlags(HAL_CLOCK_FLAGS_T *p_pstFlags);
 
 uint32_t HAL_CLOCK_Get(void);
 uint32_t HAL_CLOCK_GetBus(uint8_t p_ucBus);
 uint32_t HAL_CLOCK_GetTimer(uint8_t p_ucBus);
 
-HAL_Return_Code HAL_CLOCK_RequestHsi(void);
+HAL_RETURN_CODE_T HAL_CLOCK_RequestHsi(void);
 void HAL_CLOCK_ReleaseHsi(void);
 
 uint32_t HAL_CLOCK_GetTick(void);
 void HAL_CLOCK_SetTickState(uint8_t p_ucState);
 void HAL_CLOCK_Delay(uint32_t p_ulMilliseconds);
 void HAL_CLOCK_DelayUs(uint32_t p_ulMicroseconds);
-void HAL_CLOCK_TimeoutStart(HAL_CLOCK_Timeout *p_pstTimeout, uint32_t p_ulMilliseconds);
-bool HAL_CLOCK_TimeoutExpired(HAL_CLOCK_Timeout *p_pstTimeout);
+void HAL_CLOCK_TimeoutStart(HAL_CLOCK_TIMEOUT_T *p_pstTimeout, uint32_t p_ulMilliseconds);
+bool HAL_CLOCK_TimeoutExpired(HAL_CLOCK_TIMEOUT_T *p_pstTimeout);
 
 #endif /* HAL_CLOCK_H_ */

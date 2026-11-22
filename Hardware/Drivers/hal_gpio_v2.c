@@ -10,20 +10,20 @@
 #include "hal_gpio.h"
 #include "hal_private.h"
 
-_Static_assert(offsetof(HAL_GPIO_Registers, IDR) == offsetof(GPIO_TypeDef, IDR), "GPIO layout");
-_Static_assert(offsetof(HAL_GPIO_Registers, ODR) == offsetof(GPIO_TypeDef, ODR), "GPIO layout");
-_Static_assert(offsetof(HAL_GPIO_Registers, BSRR) == offsetof(GPIO_TypeDef, BSRR), "GPIO layout");
-_Static_assert(offsetof(HAL_GPIO_Registers, AFR) == offsetof(GPIO_TypeDef, AFR), "GPIO layout");
+_Static_assert(offsetof(HAL_GPIO_REGISTERS_T, IDR) == offsetof(GPIO_TypeDef, IDR), "GPIO layout");
+_Static_assert(offsetof(HAL_GPIO_REGISTERS_T, ODR) == offsetof(GPIO_TypeDef, ODR), "GPIO layout");
+_Static_assert(offsetof(HAL_GPIO_REGISTERS_T, BSRR) == offsetof(GPIO_TypeDef, BSRR), "GPIO layout");
+_Static_assert(offsetof(HAL_GPIO_REGISTERS_T, AFR) == offsetof(GPIO_TypeDef, AFR), "GPIO layout");
 
 typedef struct
 {
-	HAL_GPIO_CALLBACK m_pfCallback; // NULL - the line is free
+	HAL_GPIO_CALLBACK_T m_pfCallback; // NULL - the line is free
 	void *m_pvContext;
 	uint8_t m_ucModule;
-}HAL_GPIO_Line;
+}HAL_GPIO_LINE_T;
 
 /* One entry per EXTI line. A line serves one pin number, on one port at a time. */
-static HAL_GPIO_Line g_astHAL_GPIO_Line[HAL_GPIO_PIN_NO];
+static HAL_GPIO_LINE_T g_astHAL_GPIO_Line[HAL_GPIO_PIN_NO];
 
 /**************************************************************************************************
  * @brief     GPIO configuration
@@ -34,9 +34,9 @@ static HAL_GPIO_Line g_astHAL_GPIO_Line[HAL_GPIO_PIN_NO];
  * @remarks   The pin can be configured again at any time. Interrupts are configured separately
  *            with HAL_GPIO_ConfigInterrupt.
  **************************************************************************************************/
-HAL_Return_Code HAL_GPIO_Config(uint8_t p_ucModule, uint8_t p_ucPin, const HAL_GPIO_Flags *p_pstFlags)
+HAL_RETURN_CODE_T HAL_GPIO_Config(uint8_t p_ucModule, uint8_t p_ucPin, const HAL_GPIO_FLAGS_T *p_pstFlags)
 {
-	HAL_Return_Code l_eReturnCode = HAL_ERROR__PARAMETER;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_ERROR__PARAMETER;
 	GPIO_TypeDef *l_pstPort;
 	uint32_t l_ulState;
 	uint32_t l_ulShift;
@@ -85,10 +85,10 @@ HAL_Return_Code HAL_GPIO_Config(uint8_t p_ucModule, uint8_t p_ucPin, const HAL_G
  * @return    HAL_SUCCESS or HAL_ERROR__PARAMETER
  * @remarks   A pin whose module is HAL_GPIO_NONE is skipped and reported as a success.
  **************************************************************************************************/
-HAL_Return_Code HAL_GPIO_ConfigPin(const HAL_GPIO_Pin *p_pstPin, const HAL_GPIO_Flags *p_pstFlags)
+HAL_RETURN_CODE_T HAL_GPIO_ConfigPin(const HAL_GPIO_PIN_T *p_pstPin, const HAL_GPIO_FLAGS_T *p_pstFlags)
 {
-	HAL_Return_Code l_eReturnCode = HAL_ERROR__PARAMETER;
-	HAL_GPIO_Flags l_stFlags;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_ERROR__PARAMETER;
+	HAL_GPIO_FLAGS_T l_stFlags;
 
 	if ((p_pstPin != NULL) && (p_pstFlags != NULL))
 	{
@@ -119,9 +119,9 @@ HAL_Return_Code HAL_GPIO_ConfigPin(const HAL_GPIO_Pin *p_pstPin, const HAL_GPIO_
  * @remarks   The interrupt stays masked until HAL_GPIO_SetInterrupt enables it. The pin itself is
  *            configured with HAL_GPIO_Config.
  **************************************************************************************************/
-HAL_Return_Code HAL_GPIO_ConfigInterrupt(uint8_t p_ucModule, uint8_t p_ucPin, const HAL_GPIO_InterruptFlags *p_pstFlags)
+HAL_RETURN_CODE_T HAL_GPIO_ConfigInterrupt(uint8_t p_ucModule, uint8_t p_ucPin, const HAL_GPIO_INTERRUPT_FLAGS_T *p_pstFlags)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
 	uint32_t l_ulPriority;
 	uint32_t l_ulState;
 	uint32_t l_ulMask;
@@ -217,9 +217,9 @@ HAL_Return_Code HAL_GPIO_ConfigInterrupt(uint8_t p_ucModule, uint8_t p_ucPin, co
  * @remarks   Only the mask of this line changes. The NVIC line stays enabled, because other pins
  *            may share it. An edge that was seen while the line was masked is discarded.
  **************************************************************************************************/
-HAL_Return_Code HAL_GPIO_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucPin, uint8_t p_ucState)
+HAL_RETURN_CODE_T HAL_GPIO_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucPin, uint8_t p_ucState)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
 	uint32_t l_ulState;
 	uint32_t l_ulMask;
 
@@ -260,9 +260,9 @@ HAL_Return_Code HAL_GPIO_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucPin, uint8
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  * @remarks   The NVIC line is disabled only when no other pin uses it.
  **************************************************************************************************/
-HAL_Return_Code HAL_GPIO_ReleaseInterrupt(uint8_t p_ucModule, uint8_t p_ucPin)
+HAL_RETURN_CODE_T HAL_GPIO_ReleaseInterrupt(uint8_t p_ucModule, uint8_t p_ucPin)
 {
-	HAL_Return_Code l_eReturnCode = HAL_GPIO_SetInterrupt(p_ucModule, p_ucPin, HAL_DISABLE);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_GPIO_SetInterrupt(p_ucModule, p_ucPin, HAL_DISABLE);
 	uint32_t l_ulState;
 	uint32_t l_ulMask;
 	uint8_t l_ucIndex;
@@ -306,7 +306,7 @@ HAL_Return_Code HAL_GPIO_ReleaseInterrupt(uint8_t p_ucModule, uint8_t p_ucPin)
 static void HAL_GPIO_Interrupt(uint32_t p_ulLines)
 {
 	uint32_t l_ulPending = HAL_FAMILY_EXTI_PR & HAL_FAMILY_EXTI_IMR & p_ulLines;
-	const HAL_GPIO_Line *l_pstLine;
+	const HAL_GPIO_LINE_T *l_pstLine;
 	uint32_t l_ulLine;
 
 	while (l_ulPending != 0U)

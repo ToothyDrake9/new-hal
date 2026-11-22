@@ -15,25 +15,25 @@
 
 typedef struct
 {
-	HAL_UART_RX_CALLBACK m_pfRxCallback;
-	HAL_UART_TX_CALLBACK m_pfTxCallback;
-	HAL_UART_EVENT_CALLBACK m_pfTxCompleteCallback;
-	HAL_UART_ERROR_CALLBACK m_pfErrorCallback;
+	HAL_UART_RX_CALLBACK_T m_pfRxCallback;
+	HAL_UART_TX_CALLBACK_T m_pfTxCallback;
+	HAL_UART_EVENT_CALLBACK_T m_pfTxCompleteCallback;
+	HAL_UART_ERROR_CALLBACK_T m_pfErrorCallback;
 	void *m_pvContext;
 	uint8_t m_ucConfigured;
 	uint8_t m_ucDataMask; // Hides the parity bit of a 7 bit frame
-}HAL_UART_Module_State;
+}HAL_UART_MODULE_STATE_T;
 
-static HAL_UART_Module_State g_astHAL_UART_State[HAL_UART_NO];
+static HAL_UART_MODULE_STATE_T g_astHAL_UART_State[HAL_UART_NO];
 
 /**************************************************************************************************
  * @brief     Checks a module argument
  * @param[in] p_ucModule - the UART module (e.g. HAL_UART_0)
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  **************************************************************************************************/
-static HAL_Return_Code HAL_UART_Check(uint8_t p_ucModule)
+static HAL_RETURN_CODE_T HAL_UART_Check(uint8_t p_ucModule)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
 
 	if (p_ucModule >= HAL_UART_NO)
 	{
@@ -61,12 +61,12 @@ static HAL_Return_Code HAL_UART_Check(uint8_t p_ucModule)
  *            the interrupts that are wanted. The NVIC line is enabled here when at least one
  *            callback is given.
  **************************************************************************************************/
-HAL_Return_Code HAL_UART_Config(uint8_t p_ucModule, const HAL_UART_Flags *p_pstFlags)
+HAL_RETURN_CODE_T HAL_UART_Config(uint8_t p_ucModule, const HAL_UART_FLAGS_T *p_pstFlags)
 {
-	static const HAL_GPIO_Flags l_stPinFlags = { HAL_GPIO_MODE__FUNCTION, HAL_GPIO_TYPE__PUSH_PULL, HAL_GPIO_PULL__PULL_UP, HAL_GPIO_SPEED__HIGH, 0 };
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
-	const HAL_UART_Device *l_pstDevice = NULL;
-	HAL_UART_Module_State *l_pstState;
+	static const HAL_GPIO_FLAGS_T l_stPinFlags = { HAL_GPIO_MODE__FUNCTION, HAL_GPIO_TYPE__PUSH_PULL, HAL_GPIO_PULL__PULL_UP, HAL_GPIO_SPEED__HIGH, 0 };
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
+	const HAL_UART_DEVICE_T *l_pstDevice = NULL;
+	HAL_UART_MODULE_STATE_T *l_pstState;
 	USART_TypeDef *l_pstUart;
 	uint32_t l_ulDivider = 0;
 	uint32_t l_ulControl1 = 0;
@@ -239,9 +239,9 @@ HAL_Return_Code HAL_UART_Config(uint8_t p_ucModule, const HAL_UART_Flags *p_pstF
  * @param[in] p_ucState - the UART state (e.g. HAL_ENABLE)
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  **************************************************************************************************/
-HAL_Return_Code HAL_UART_SetState(uint8_t p_ucModule, uint8_t p_ucState)
+HAL_RETURN_CODE_T HAL_UART_SetState(uint8_t p_ucModule, uint8_t p_ucState)
 {
-	HAL_Return_Code l_eReturnCode = HAL_UART_Check(p_ucModule);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_UART_Check(p_ucModule);
 
 	if (l_eReturnCode == HAL_SUCCESS)
 	{
@@ -270,10 +270,10 @@ HAL_Return_Code HAL_UART_SetState(uint8_t p_ucModule, uint8_t p_ucState)
  *            then called for each byte, and the module disables the source when the callback
  *            answers HAL_UART_TX__DONE.
  **************************************************************************************************/
-HAL_Return_Code HAL_UART_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucInterrupt, uint8_t p_ucState)
+HAL_RETURN_CODE_T HAL_UART_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucInterrupt, uint8_t p_ucState)
 {
-	HAL_Return_Code l_eReturnCode = HAL_UART_Check(p_ucModule);
-	const HAL_UART_Module_State *l_pstState;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_UART_Check(p_ucModule);
+	const HAL_UART_MODULE_STATE_T *l_pstState;
 	uint32_t l_ulMask = 0;
 
 	if (l_eReturnCode == HAL_SUCCESS)
@@ -345,9 +345,9 @@ HAL_Return_Code HAL_UART_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucInterrupt,
  * @param[out] p_pulBaud - the baud rate
  * @return     HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  **************************************************************************************************/
-HAL_Return_Code HAL_UART_GetBaud(uint8_t p_ucModule, uint32_t *p_pulBaud)
+HAL_RETURN_CODE_T HAL_UART_GetBaud(uint8_t p_ucModule, uint32_t *p_pulBaud)
 {
-	HAL_Return_Code l_eReturnCode = HAL_UART_Check(p_ucModule);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_UART_Check(p_ucModule);
 	uint32_t l_ulDivider;
 
 	if ((l_eReturnCode == HAL_SUCCESS) && (p_pulBaud == NULL))
@@ -375,10 +375,10 @@ HAL_Return_Code HAL_UART_GetBaud(uint8_t p_ucModule, uint32_t *p_pulBaud)
  * @remarks    For use without the receive interrupt. An overrun is not an error of this byte:
  *             the byte is returned and the flag is cleared.
  **************************************************************************************************/
-HAL_Return_Code HAL_UART_ReadByte(uint8_t p_ucModule, uint8_t *p_pucByte, uint32_t p_ulTimeoutMs)
+HAL_RETURN_CODE_T HAL_UART_ReadByte(uint8_t p_ucModule, uint8_t *p_pucByte, uint32_t p_ulTimeoutMs)
 {
-	HAL_Return_Code l_eReturnCode = HAL_UART_Check(p_ucModule);
-	HAL_CLOCK_Timeout l_stTimeout;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_UART_Check(p_ucModule);
+	HAL_CLOCK_TIMEOUT_T l_stTimeout;
 	USART_TypeDef *l_pstUart;
 	uint32_t l_ulStatus;
 	uint32_t l_ulData;
@@ -440,10 +440,10 @@ HAL_Return_Code HAL_UART_ReadByte(uint8_t p_ucModule, uint8_t *p_pucByte, uint32
  *            shifted out. Use HAL_UART_Flush to wait for the end of the transmission. Do not mix
  *            with interrupt driven transmission on the same module.
  **************************************************************************************************/
-HAL_Return_Code HAL_UART_WriteByte(uint8_t p_ucModule, uint8_t p_ucByte)
+HAL_RETURN_CODE_T HAL_UART_WriteByte(uint8_t p_ucModule, uint8_t p_ucByte)
 {
-	HAL_Return_Code l_eReturnCode = HAL_UART_Check(p_ucModule);
-	HAL_CLOCK_Timeout l_stTimeout;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_UART_Check(p_ucModule);
+	HAL_CLOCK_TIMEOUT_T l_stTimeout;
 	USART_TypeDef *l_pstUart;
 
 	if (l_eReturnCode == HAL_SUCCESS)
@@ -478,9 +478,9 @@ HAL_Return_Code HAL_UART_WriteByte(uint8_t p_ucModule, uint8_t p_ucByte)
  * @param[in] p_unSize - the buffer size
  * @return    Same as HAL_UART_WriteByte; the transmission stops at the first error
  **************************************************************************************************/
-HAL_Return_Code HAL_UART_WriteBuff(uint8_t p_ucModule, const uint8_t *p_pucBuff, uint16_t p_unSize)
+HAL_RETURN_CODE_T HAL_UART_WriteBuff(uint8_t p_ucModule, const uint8_t *p_pucBuff, uint16_t p_unSize)
 {
-	HAL_Return_Code l_eReturnCode = HAL_UART_Check(p_ucModule);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_UART_Check(p_ucModule);
 	uint16_t l_unIndex;
 
 	if ((l_eReturnCode == HAL_SUCCESS) && (p_pucBuff == NULL) && (p_unSize != 0U))
@@ -501,10 +501,10 @@ HAL_Return_Code HAL_UART_WriteBuff(uint8_t p_ucModule, const uint8_t *p_pucBuff,
  * @param[in] p_ucModule - the UART module (e.g. HAL_UART_0)
  * @return    HAL_SUCCESS, HAL_ERROR__TIMEOUT, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  **************************************************************************************************/
-HAL_Return_Code HAL_UART_Flush(uint8_t p_ucModule)
+HAL_RETURN_CODE_T HAL_UART_Flush(uint8_t p_ucModule)
 {
-	HAL_Return_Code l_eReturnCode = HAL_UART_Check(p_ucModule);
-	HAL_CLOCK_Timeout l_stTimeout;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_UART_Check(p_ucModule);
+	HAL_CLOCK_TIMEOUT_T l_stTimeout;
 	const USART_TypeDef *l_pstUart;
 
 	if (l_eReturnCode == HAL_SUCCESS)
@@ -535,7 +535,7 @@ HAL_Return_Code HAL_UART_Flush(uint8_t p_ucModule)
  **************************************************************************************************/
 static void HAL_UART_Interrupt(uint8_t p_ucModule)
 {
-	const HAL_UART_Module_State *l_pstState = &g_astHAL_UART_State[p_ucModule];
+	const HAL_UART_MODULE_STATE_T *l_pstState = &g_astHAL_UART_State[p_ucModule];
 	USART_TypeDef *l_pstUart = g_astHAL_UART_Device[p_ucModule].m_pstRegisters;
 	uint32_t l_ulStatus = l_pstUart->SR;
 	uint32_t l_ulControl = l_pstUart->CR1;

@@ -51,7 +51,7 @@ enum HAL_DMA_Interrupts
 };
 
 /* Runs in interrupt context. */
-typedef void (*HAL_DMA_CALLBACK) (void *p_pvContext);
+typedef void (*HAL_DMA_CALLBACK_T) (void *p_pvContext);
 
 typedef struct
 {
@@ -62,17 +62,17 @@ typedef struct
 	uint8_t m_ucPeripheralSize : 2;       // e.g. HAL_DMA_SIZE__8
 	uint8_t m_ucMemorySize : 2;           // e.g. HAL_DMA_SIZE__8
 	uint8_t m_ucPriority : 2;             // e.g. HAL_DMA_PRIORITY__LOW
-	HAL_Interrupt m_stInterrupt;          // Priority of the channel interrupt
-	HAL_DMA_CALLBACK m_pfCompleteCallback;  // NULL - not used
-	HAL_DMA_CALLBACK m_pfHalfCallback;      // NULL - not used
-	HAL_DMA_CALLBACK m_pfErrorCallback;     // NULL - not used; when given, its interrupt is always on
+	HAL_INTERRUPT_T m_stInterrupt;          // Priority of the channel interrupt
+	HAL_DMA_CALLBACK_T m_pfCompleteCallback;  // NULL - not used
+	HAL_DMA_CALLBACK_T m_pfHalfCallback;      // NULL - not used
+	HAL_DMA_CALLBACK_T m_pfErrorCallback;     // NULL - not used; when given, its interrupt is always on
 	void *m_pvContext;                    // Given back to the callbacks
-}HAL_DMA_Flags;
+}HAL_DMA_FLAGS_T;
 
-HAL_Return_Code HAL_DMA_Config(uint8_t p_ucModule, uint8_t p_ucChannel, const HAL_DMA_Flags *p_pstFlags);
-HAL_Return_Code HAL_DMA_Start(uint8_t p_ucModule, uint8_t p_ucChannel, uint32_t p_ulPeripheralAddress, uint32_t p_ulMemoryAddress, uint16_t p_unCount);
-HAL_Return_Code HAL_DMA_Stop(uint8_t p_ucModule, uint8_t p_ucChannel);
-HAL_Return_Code HAL_DMA_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucChannel, uint8_t p_ucInterrupt, uint8_t p_ucState);
-HAL_Return_Code HAL_DMA_GetRemaining(uint8_t p_ucModule, uint8_t p_ucChannel, uint16_t *p_punCount);
+HAL_RETURN_CODE_T HAL_DMA_Config(uint8_t p_ucModule, uint8_t p_ucChannel, const HAL_DMA_FLAGS_T *p_pstFlags);
+HAL_RETURN_CODE_T HAL_DMA_Start(uint8_t p_ucModule, uint8_t p_ucChannel, uint32_t p_ulPeripheralAddress, uint32_t p_ulMemoryAddress, uint16_t p_unCount);
+HAL_RETURN_CODE_T HAL_DMA_Stop(uint8_t p_ucModule, uint8_t p_ucChannel);
+HAL_RETURN_CODE_T HAL_DMA_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucChannel, uint8_t p_ucInterrupt, uint8_t p_ucState);
+HAL_RETURN_CODE_T HAL_DMA_GetRemaining(uint8_t p_ucModule, uint8_t p_ucChannel, uint16_t *p_punCount);
 
 #endif /* HAL_DMA_H_ */

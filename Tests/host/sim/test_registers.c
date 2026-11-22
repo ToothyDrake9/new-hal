@@ -209,10 +209,10 @@ static void TEST_Clear(void)
  **************************************************************************************************/
 static void TEST_Clock(void)
 {
-	static const HAL_CLOCK_Flags l_stExternal = BOARD_CLOCK_FLAGS;
-	static const HAL_CLOCK_Flags l_stInternal = BOARD_CLOCK_FLAGS__INTERNAL;
-	HAL_CLOCK_Flags l_stFlags = BOARD_CLOCK_FLAGS;
-	HAL_CLOCK_Timeout l_stTimeout;
+	static const HAL_CLOCK_FLAGS_T l_stExternal = BOARD_CLOCK_FLAGS;
+	static const HAL_CLOCK_FLAGS_T l_stInternal = BOARD_CLOCK_FLAGS__INTERNAL;
+	HAL_CLOCK_FLAGS_T l_stFlags = BOARD_CLOCK_FLAGS;
+	HAL_CLOCK_TIMEOUT_T l_stTimeout;
 	uint32_t l_ulTick;
 
 	SIM_Reset();
@@ -261,7 +261,7 @@ static void TEST_Clock(void)
 	TEST_CHECK(SIM_SYSTICK->LOAD == 15999UL);
 
 	/* A configuration outside the limits of its voltage range is refused and nothing changes. */
-	l_stFlags = (HAL_CLOCK_Flags) BOARD_CLOCK_FLAGS;
+	l_stFlags = (HAL_CLOCK_FLAGS_T) BOARD_CLOCK_FLAGS;
 	l_stFlags.m_ucVoltage = HAL_CLOCK_VOLTAGE__RANGE_2;
 	TEST_CHECK(HAL_CLOCK_Update(&l_stFlags) == HAL_ERROR__PARAMETER);
 	TEST_CHECK(HAL_CLOCK_Get() == 32000000UL);
@@ -275,7 +275,7 @@ static void TEST_Clock(void)
 	TEST_CHECK((FLASH->ACR & FLASH_ACR_LATENCY) != 0U);                         /* Above 8 MHz in range 2 */
 
 	/* MSI in range 3: no wait state, 64 bit access off. */
-	l_stFlags = (HAL_CLOCK_Flags) { .m_ucSource = HAL_CLOCK_SOURCE__MSI, .m_ucMsiRange = HAL_CLOCK_MSI__1048_KHZ, .m_ucVoltage = HAL_CLOCK_VOLTAGE__RANGE_3 };
+	l_stFlags = (HAL_CLOCK_FLAGS_T) { .m_ucSource = HAL_CLOCK_SOURCE__MSI, .m_ucMsiRange = HAL_CLOCK_MSI__1048_KHZ, .m_ucVoltage = HAL_CLOCK_VOLTAGE__RANGE_3 };
 	TEST_CHECK(HAL_CLOCK_Update(&l_stFlags) == HAL_SUCCESS);
 	TEST_CHECK((PWR->CR & PWR_CR_VOS) == PWR_CR_VOS);
 	TEST_CHECK(FLASH->ACR == 0U);
@@ -319,8 +319,8 @@ static void TEST_Clock(void)
  **************************************************************************************************/
 static void TEST_Gpio(void)
 {
-	HAL_GPIO_Flags l_stFlags = { .m_ucMode = HAL_GPIO_MODE__FUNCTION, .m_ucType = HAL_GPIO_TYPE__OPEN_DRAIN, .m_ucPull = HAL_GPIO_PULL__PULL_UP, .m_ucSpeed = HAL_GPIO_SPEED__VERY_HIGH, .m_ucFunction = HAL_GPIO_FUNCTION__7 };
-	HAL_GPIO_InterruptFlags l_stEdge = { .m_ucEdge = HAL_GPIO_FALLING, .m_stInterrupt = { .m_ucPrePriority = 5 }, .m_pfCallback = TEST_Callback, .m_pvContext = &g_ulTEST_Value };
+	HAL_GPIO_FLAGS_T l_stFlags = { .m_ucMode = HAL_GPIO_MODE__FUNCTION, .m_ucType = HAL_GPIO_TYPE__OPEN_DRAIN, .m_ucPull = HAL_GPIO_PULL__PULL_UP, .m_ucSpeed = HAL_GPIO_SPEED__VERY_HIGH, .m_ucFunction = HAL_GPIO_FUNCTION__7 };
+	HAL_GPIO_INTERRUPT_FLAGS_T l_stEdge = { .m_ucEdge = HAL_GPIO_FALLING, .m_stInterrupt = { .m_ucPrePriority = 5 }, .m_pfCallback = TEST_Callback, .m_pvContext = &g_ulTEST_Value };
 	uint32_t l_ulPriority;
 
 	TEST_CHECK(HAL_GPIO_Config(HAL_GPIO_NO, HAL_GPIO_PIN_0, &l_stFlags) == HAL_ERROR__PARAMETER);
@@ -432,7 +432,7 @@ static void TEST_Gpio(void)
  **************************************************************************************************/
 static void TEST_Uart(void)
 {
-	HAL_UART_Flags l_stFlags =
+	HAL_UART_FLAGS_T l_stFlags =
 	{
 		.m_ulBaud = 921600, .m_stTxPin = BOARD_VCP_TX_PIN, .m_stRxPin = BOARD_VCP_RX_PIN, .m_stInterrupt = { .m_ucPrePriority = 8 },
 		.m_pfRxCallback = TEST_RxCallback, .m_pfTxCallback = TEST_TxCallback, .m_pfErrorCallback = TEST_ErrorCallback, .m_pvContext = &g_ulTEST_Calls
@@ -476,15 +476,15 @@ static void TEST_Uart(void)
 	l_stFlags.m_ulBaud = 115200;
 
 	/* USART1 sits on the other bus and takes its pins from the configuration. */
-	l_stFlags.m_stTxPin = (HAL_GPIO_Pin) { HAL_GPIO_0, HAL_GPIO_PIN_9, HAL_GPIO_FUNCTION__7 };
-	l_stFlags.m_stRxPin = (HAL_GPIO_Pin) BOARD_NO_PIN;
+	l_stFlags.m_stTxPin = (HAL_GPIO_PIN_T) { HAL_GPIO_0, HAL_GPIO_PIN_9, HAL_GPIO_FUNCTION__7 };
+	l_stFlags.m_stRxPin = (HAL_GPIO_PIN_T) BOARD_NO_PIN;
 	TEST_CHECK(HAL_UART_Config(HAL_UART_0, &l_stFlags) == HAL_SUCCESS);
 	TEST_CHECK((RCC->APB2ENR & RCC_APB2ENR_USART1EN) != 0U);
 	TEST_CHECK(USART1->CR1 == USART_CR1_TE);                                    /* No receiver without a pin */
 	TEST_CHECK((GPIOA->AFR[1] & 0xF0U) == 0x70U);
 
-	l_stFlags.m_stTxPin = (HAL_GPIO_Pin) BOARD_VCP_TX_PIN;
-	l_stFlags.m_stRxPin = (HAL_GPIO_Pin) BOARD_VCP_RX_PIN;
+	l_stFlags.m_stTxPin = (HAL_GPIO_PIN_T) BOARD_VCP_TX_PIN;
+	l_stFlags.m_stRxPin = (HAL_GPIO_PIN_T) BOARD_VCP_RX_PIN;
 	TEST_CHECK(HAL_UART_Config(HAL_UART_1, &l_stFlags) == HAL_SUCCESS);
 	TEST_CHECK(HAL_UART_SetState(HAL_UART_1, HAL_ENABLE) == HAL_SUCCESS);
 	TEST_CHECK(HAL_UART_SetInterrupt(HAL_UART_1, HAL_UART_RX, HAL_ENABLE) == HAL_SUCCESS);
@@ -555,8 +555,8 @@ static void TEST_Uart(void)
  **************************************************************************************************/
 static void TEST_Timer(void)
 {
-	HAL_TIMER_Flags l_stFlags = { .m_ucDirection = HAL_TIMER_DIRECTION__DOWN, .m_unPrescaler = 31, .m_ulUpdate = 999, .m_stInterrupt = { .m_ucPrePriority = 3 }, .m_pfUpdateCallback = TEST_Callback, .m_apfCompareCallback = { TEST_SecondCallback } };
-	HAL_TIMER_ChannelFlags l_stChannel = { .m_ucOutput = HAL_TIMER_OUTPUT__NONE, .m_ulCompare = 0 };
+	HAL_TIMER_FLAGS_T l_stFlags = { .m_ucDirection = HAL_TIMER_DIRECTION__DOWN, .m_unPrescaler = 31, .m_ulUpdate = 999, .m_stInterrupt = { .m_ucPrePriority = 3 }, .m_pfUpdateCallback = TEST_Callback, .m_apfCompareCallback = { TEST_SecondCallback } };
+	HAL_TIMER_CHANNEL_FLAGS_T l_stChannel = { .m_ucOutput = HAL_TIMER_OUTPUT__NONE, .m_ulCompare = 0 };
 	uint32_t l_ulValue = 1;
 
 	TEST_CHECK(HAL_TIMER_SetState(HAL_TIMER_0, HAL_ENABLE) == HAL_ERROR__NOT_CONFIGURED);
@@ -607,7 +607,7 @@ static void TEST_Timer(void)
 	TEST_CHECK(HAL_TIMER_SetCompare(HAL_TIMER_7, HAL_TIMER_COMPARE2, 1) == HAL_ERROR__PARAMETER);   /* TIM10 has one channel */
 
 	/* PWM on channel 2: mode 6 in the second byte of the mode register, output enabled. */
-	l_stChannel = (HAL_TIMER_ChannelFlags) { .m_ucOutput = HAL_TIMER_OUTPUT__PWM, .m_ulCompare = 250, .m_stPin = { HAL_GPIO_0, HAL_GPIO_PIN_1, HAL_GPIO_FUNCTION__1 } };
+	l_stChannel = (HAL_TIMER_CHANNEL_FLAGS_T) { .m_ucOutput = HAL_TIMER_OUTPUT__PWM, .m_ulCompare = 250, .m_stPin = { HAL_GPIO_0, HAL_GPIO_PIN_1, HAL_GPIO_FUNCTION__1 } };
 	TEST_CHECK(HAL_TIMER_ConfigChannel(HAL_TIMER_0, HAL_TIMER_COMPARE2, &l_stChannel) == HAL_SUCCESS);
 	TEST_CHECK(TIM2->CCMR1 == (6UL << 12));
 	TEST_CHECK(TIM2->CCER == (1UL << 4));
@@ -648,8 +648,8 @@ static void TEST_Timer(void)
  **************************************************************************************************/
 static void TEST_Buses(void)
 {
-	HAL_SPI_Flags l_stSpi = { .m_ucPolarity = HAL_SPI_POLARITY__HIGH, .m_ucPhase = HAL_SPI_PHASE__SECOND_EDGE, .m_ulSpeed = 8000000, .m_stClkPin = BOARD_SPI_CLK_PIN, .m_stMisoPin = BOARD_SPI_MISO_PIN, .m_stMosiPin = BOARD_SPI_MOSI_PIN, .m_stSsPin = BOARD_NO_PIN, .m_pfRxCallback = TEST_RxCallback };
-	HAL_I2C_Flags l_stI2c = { .m_ulSpeed = 100000, .m_stSclPin = BOARD_I2C_SCL_PIN, .m_stSdaPin = BOARD_I2C_SDA_PIN };
+	HAL_SPI_FLAGS_T l_stSpi = { .m_ucPolarity = HAL_SPI_POLARITY__HIGH, .m_ucPhase = HAL_SPI_PHASE__SECOND_EDGE, .m_ulSpeed = 8000000, .m_stClkPin = BOARD_SPI_CLK_PIN, .m_stMisoPin = BOARD_SPI_MISO_PIN, .m_stMosiPin = BOARD_SPI_MOSI_PIN, .m_stSsPin = BOARD_NO_PIN, .m_pfRxCallback = TEST_RxCallback };
+	HAL_I2C_FLAGS_T l_stI2c = { .m_ulSpeed = 100000, .m_stSclPin = BOARD_I2C_SCL_PIN, .m_stSdaPin = BOARD_I2C_SDA_PIN };
 	uint32_t l_ulSpeed = 0;
 	uint8_t l_ucByte = 0;
 
@@ -669,9 +669,9 @@ static void TEST_Buses(void)
 	TEST_CHECK(l_ulSpeed == 4000000UL);
 
 	/* The pins and their function come from the configuration: SPI3 gets function 6. */
-	l_stSpi.m_stClkPin = (HAL_GPIO_Pin) { HAL_GPIO_2, HAL_GPIO_PIN_10, HAL_GPIO_FUNCTION__6 };
-	l_stSpi.m_stMisoPin = (HAL_GPIO_Pin) { HAL_GPIO_2, HAL_GPIO_PIN_11, HAL_GPIO_FUNCTION__6 };
-	l_stSpi.m_stMosiPin = (HAL_GPIO_Pin) { HAL_GPIO_2, HAL_GPIO_PIN_12, HAL_GPIO_FUNCTION__6 };
+	l_stSpi.m_stClkPin = (HAL_GPIO_PIN_T) { HAL_GPIO_2, HAL_GPIO_PIN_10, HAL_GPIO_FUNCTION__6 };
+	l_stSpi.m_stMisoPin = (HAL_GPIO_PIN_T) { HAL_GPIO_2, HAL_GPIO_PIN_11, HAL_GPIO_FUNCTION__6 };
+	l_stSpi.m_stMosiPin = (HAL_GPIO_PIN_T) { HAL_GPIO_2, HAL_GPIO_PIN_12, HAL_GPIO_FUNCTION__6 };
 	TEST_CHECK(HAL_SPI_Config(HAL_SPI_2, &l_stSpi) == HAL_SUCCESS);
 	TEST_CHECK((GPIOC->AFR[1] & 0x000FFF00UL) == 0x00066600UL);
 	TEST_CHECK((RCC->APB1ENR & RCC_APB1ENR_SPI3EN) != 0U);
@@ -722,13 +722,13 @@ static void TEST_Buses(void)
  **************************************************************************************************/
 static void TEST_Others(void)
 {
-	static const HAL_ADC_Flags l_stAdc = { .m_ucResolution = HAL_ADC_RESOLUTION__10_BITS, .m_pfConversionCallback = TEST_AdcCallback };
-	static const HAL_ADC_ChannelFlags l_stAdcChannel = { .m_ucSampleTime = HAL_ADC_SAMPLE_TIME__96, .m_stPin = { HAL_GPIO_0, HAL_GPIO_PIN_1, 0 } };
-	static const HAL_DAC_Flags l_stDac = { .m_ucBuffer = HAL_DISABLE, .m_stPin = { HAL_GPIO_0, HAL_GPIO_PIN_5, 0 } };
-	static const HAL_DMA_Flags l_stDma = { .m_ucDirection = HAL_DMA_DIRECTION__MEMORY_TO_PERIPHERAL, .m_ucMemoryIncrement = HAL_ENABLE, .m_ucMemorySize = HAL_DMA_SIZE__16, .m_ucPriority = HAL_DMA_PRIORITY__HIGH, .m_pfCompleteCallback = TEST_Callback };
-	static const HAL_CLOCK_Flags l_stClock = BOARD_CLOCK_FLAGS;
-	static const HAL_CRC_Flags l_stCrc16 = { .m_ulPolynomial = 0x1021, .m_ulInitialValue = 0xFFFF, .m_ucSize = 16 };
-	static const HAL_LPM_Flags l_stStandby = { .m_ucWakeUpPins = HAL_LPM_WAKEUP_PIN__1 };
+	static const HAL_ADC_FLAGS_T l_stAdc = { .m_ucResolution = HAL_ADC_RESOLUTION__10_BITS, .m_pfConversionCallback = TEST_AdcCallback };
+	static const HAL_ADC_CHANNEL_FLAGS_T l_stAdcChannel = { .m_ucSampleTime = HAL_ADC_SAMPLE_TIME__96, .m_stPin = { HAL_GPIO_0, HAL_GPIO_PIN_1, 0 } };
+	static const HAL_DAC_FLAGS_T l_stDac = { .m_ucBuffer = HAL_DISABLE, .m_stPin = { HAL_GPIO_0, HAL_GPIO_PIN_5, 0 } };
+	static const HAL_DMA_FLAGS_T l_stDma = { .m_ucDirection = HAL_DMA_DIRECTION__MEMORY_TO_PERIPHERAL, .m_ucMemoryIncrement = HAL_ENABLE, .m_ucMemorySize = HAL_DMA_SIZE__16, .m_ucPriority = HAL_DMA_PRIORITY__HIGH, .m_pfCompleteCallback = TEST_Callback };
+	static const HAL_CLOCK_FLAGS_T l_stClock = BOARD_CLOCK_FLAGS;
+	static const HAL_CRC_FLAGS_T l_stCrc16 = { .m_ulPolynomial = 0x1021, .m_ulInitialValue = 0xFFFF, .m_ucSize = 16 };
+	static const HAL_LPM_FLAGS_T l_stStandby = { .m_ucWakeUpPins = HAL_LPM_WAKEUP_PIN__1 };
 	uint32_t l_ulValue = 0x11111111UL;
 	uint16_t l_unValue = 0;
 	uint8_t l_aucBlock[16] = { 0 };

@@ -14,13 +14,13 @@
 
 typedef struct
 {
-	HAL_ADC_CALLBACK m_pfConversionCallback;
+	HAL_ADC_CALLBACK_T m_pfConversionCallback;
 	void *m_pvContext;
 	uint8_t m_ucConfigured;
 	uint8_t m_ucEnabled;
-}HAL_ADC_Module_State;
+}HAL_ADC_MODULE_STATE_T;
 
-static HAL_ADC_Module_State g_astHAL_ADC_State[HAL_ADC_NO];
+static HAL_ADC_MODULE_STATE_T g_astHAL_ADC_State[HAL_ADC_NO];
 
 /**************************************************************************************************
  * @brief     Waits until the masked bits of the status register have the expected value
@@ -28,10 +28,10 @@ static HAL_ADC_Module_State g_astHAL_ADC_State[HAL_ADC_NO];
  * @param[in] p_ulValue - the expected value of these bits
  * @return    HAL_SUCCESS or HAL_ERROR__TIMEOUT
  **************************************************************************************************/
-static HAL_Return_Code HAL_ADC_Wait(uint32_t p_ulMask, uint32_t p_ulValue)
+static HAL_RETURN_CODE_T HAL_ADC_Wait(uint32_t p_ulMask, uint32_t p_ulValue)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
-	HAL_CLOCK_Timeout l_stTimeout;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
+	HAL_CLOCK_TIMEOUT_T l_stTimeout;
 
 	HAL_CLOCK_TimeoutStart(&l_stTimeout, HAL_ADC_TIMEOUT_MS);
 
@@ -55,9 +55,9 @@ static HAL_Return_Code HAL_ADC_Wait(uint32_t p_ulMask, uint32_t p_ulValue)
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED (not configured, or
  *            not enabled)
  **************************************************************************************************/
-static HAL_Return_Code HAL_ADC_Check(uint8_t p_ucModule, uint8_t p_ucChannel)
+static HAL_RETURN_CODE_T HAL_ADC_Check(uint8_t p_ucModule, uint8_t p_ucChannel)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
 
 	if ((p_ucModule >= HAL_ADC_NO) || (p_ucChannel >= HAL_ADC_CHANNEL_NO))
 	{
@@ -80,10 +80,10 @@ static HAL_Return_Code HAL_ADC_Check(uint8_t p_ucModule, uint8_t p_ucChannel)
  * @param[in] p_ucChannel - the ADC channel, already checked
  * @return    HAL_SUCCESS or HAL_ERROR__TIMEOUT
  **************************************************************************************************/
-static HAL_Return_Code HAL_ADC_Start(uint8_t p_ucChannel)
+static HAL_RETURN_CODE_T HAL_ADC_Start(uint8_t p_ucChannel)
 {
 	/* The sequence may only be written when the regular channel is ready. */
-	HAL_Return_Code l_eReturnCode = HAL_ADC_Wait(ADC_SR_RCNR, 0);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_ADC_Wait(ADC_SR_RCNR, 0);
 
 	if (l_eReturnCode == HAL_SUCCESS)
 	{
@@ -106,10 +106,10 @@ static HAL_Return_Code HAL_ADC_Start(uint8_t p_ucChannel)
  *            HAL_ADC_SetState. The ADC clock is the HSI, divided so that it stays within the
  *            limit of the core voltage range that is selected now.
  **************************************************************************************************/
-HAL_Return_Code HAL_ADC_Config(uint8_t p_ucModule, const HAL_ADC_Flags *p_pstFlags)
+HAL_RETURN_CODE_T HAL_ADC_Config(uint8_t p_ucModule, const HAL_ADC_FLAGS_T *p_pstFlags)
 {
-	HAL_Return_Code l_eReturnCode = HAL_ERROR__PARAMETER;
-	HAL_ADC_Module_State *l_pstState;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_ERROR__PARAMETER;
+	HAL_ADC_MODULE_STATE_T *l_pstState;
 	uint32_t l_ulPrescaler = 0;
 
 	if ((p_ucModule < HAL_ADC_NO) && (p_pstFlags != NULL))
@@ -169,12 +169,12 @@ HAL_Return_Code HAL_ADC_Config(uint8_t p_ucModule, const HAL_ADC_Flags *p_pstFla
  * @remarks   Configuring an internal channel switches the temperature sensor and the internal
  *            reference on; they stay on.
  **************************************************************************************************/
-HAL_Return_Code HAL_ADC_ConfigChannel(uint8_t p_ucModule, uint8_t p_ucChannel, const HAL_ADC_ChannelFlags *p_pstFlags)
+HAL_RETURN_CODE_T HAL_ADC_ConfigChannel(uint8_t p_ucModule, uint8_t p_ucChannel, const HAL_ADC_CHANNEL_FLAGS_T *p_pstFlags)
 {
-	static const HAL_GPIO_Flags l_stPinFlags = { HAL_GPIO_MODE__ANALOG, HAL_GPIO_TYPE__PUSH_PULL, HAL_GPIO_PULL__NO_PULL, HAL_GPIO_SPEED__LOW, 0 };
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
+	static const HAL_GPIO_FLAGS_T l_stPinFlags = { HAL_GPIO_MODE__ANALOG, HAL_GPIO_TYPE__PUSH_PULL, HAL_GPIO_PULL__NO_PULL, HAL_GPIO_SPEED__LOW, 0 };
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
 	volatile uint32_t *l_pulRegister;
-	HAL_CLOCK_Timeout l_stTimeout;
+	HAL_CLOCK_TIMEOUT_T l_stTimeout;
 	uint32_t l_ulShift;
 
 	if ((p_ucModule >= HAL_ADC_NO) || (p_ucChannel >= HAL_ADC_CHANNEL_NO) || (p_pstFlags == NULL) || (p_pstFlags->m_ucSampleTime > HAL_ADC_SAMPLE_TIME__384))
@@ -241,10 +241,10 @@ HAL_Return_Code HAL_ADC_ConfigChannel(uint8_t p_ucModule, uint8_t p_ucChannel, c
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER, HAL_ERROR__NOT_CONFIGURED or HAL_ERROR__TIMEOUT
  * @remarks   Enabling requests the HSI oscillator; disabling releases it.
  **************************************************************************************************/
-HAL_Return_Code HAL_ADC_SetState(uint8_t p_ucModule, uint8_t p_ucState)
+HAL_RETURN_CODE_T HAL_ADC_SetState(uint8_t p_ucModule, uint8_t p_ucState)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
-	HAL_ADC_Module_State *l_pstState;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
+	HAL_ADC_MODULE_STATE_T *l_pstState;
 
 	if (p_ucModule >= HAL_ADC_NO)
 	{
@@ -307,9 +307,9 @@ HAL_Return_Code HAL_ADC_SetState(uint8_t p_ucModule, uint8_t p_ucState)
  * @return     HAL_SUCCESS, HAL_ERROR__TIMEOUT, HAL_ERROR__PARAMETER, or HAL_ERROR__NOT_CONFIGURED
  *             when the module is not configured or not enabled
  **************************************************************************************************/
-HAL_Return_Code HAL_ADC_ReadChannelRaw(uint8_t p_ucModule, uint8_t p_ucChannel, uint16_t *p_punValue)
+HAL_RETURN_CODE_T HAL_ADC_ReadChannelRaw(uint8_t p_ucModule, uint8_t p_ucChannel, uint16_t *p_punValue)
 {
-	HAL_Return_Code l_eReturnCode = HAL_ADC_Check(p_ucModule, p_ucChannel);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_ADC_Check(p_ucModule, p_ucChannel);
 
 	if ((l_eReturnCode == HAL_SUCCESS) && (p_punValue == NULL))
 	{
@@ -348,9 +348,9 @@ HAL_Return_Code HAL_ADC_ReadChannelRaw(uint8_t p_ucModule, uint8_t p_ucChannel, 
  * @return    HAL_SUCCESS, HAL_ERROR__TIMEOUT, HAL_ERROR__PARAMETER, or HAL_ERROR__NOT_CONFIGURED
  *            when the module is not configured, not enabled, or has no conversion callback
  **************************************************************************************************/
-HAL_Return_Code HAL_ADC_StartConversion(uint8_t p_ucModule, uint8_t p_ucChannel)
+HAL_RETURN_CODE_T HAL_ADC_StartConversion(uint8_t p_ucModule, uint8_t p_ucChannel)
 {
-	HAL_Return_Code l_eReturnCode = HAL_ADC_Check(p_ucModule, p_ucChannel);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_ADC_Check(p_ucModule, p_ucChannel);
 
 	if ((l_eReturnCode == HAL_SUCCESS) && (g_astHAL_ADC_State[p_ucModule].m_pfConversionCallback == NULL))
 	{
@@ -375,7 +375,7 @@ HAL_Return_Code HAL_ADC_StartConversion(uint8_t p_ucModule, uint8_t p_ucChannel)
  **************************************************************************************************/
 static void HAL_ADC_Interrupt(uint8_t p_ucModule)
 {
-	const HAL_ADC_Module_State *l_pstState = &g_astHAL_ADC_State[p_ucModule];
+	const HAL_ADC_MODULE_STATE_T *l_pstState = &g_astHAL_ADC_State[p_ucModule];
 	uint16_t l_unValue;
 
 	if ((ADC1->SR & ADC_SR_EOCS) && (ADC1->CR1 & ADC_CR1_EOCSIE))

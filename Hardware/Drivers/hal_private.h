@@ -21,30 +21,30 @@ typedef struct
 {
 	volatile uint32_t *m_pulRegister;
 	uint32_t m_ulMask;
-}HAL_ClockGate;
+}HAL_CLOCK_GATE_T;
 
 typedef struct
 {
 	USART_TypeDef *m_pstRegisters;
-	HAL_ClockGate m_stClock;
+	HAL_CLOCK_GATE_T m_stClock;
 	IRQn_Type m_eIRQn;
 	uint8_t m_ucBus;
-}HAL_UART_Device;
+}HAL_UART_DEVICE_T;
 
 typedef struct
 {
 	SPI_TypeDef *m_pstRegisters;
-	HAL_ClockGate m_stClock;
+	HAL_CLOCK_GATE_T m_stClock;
 	IRQn_Type m_eIRQn;
 	uint8_t m_ucBus;
-}HAL_SPI_Device;
+}HAL_SPI_DEVICE_T;
 
 typedef struct
 {
 	I2C_TypeDef *m_pstRegisters;
-	HAL_ClockGate m_stClock;
+	HAL_CLOCK_GATE_T m_stClock;
 	uint8_t m_ucBus;
-}HAL_I2C_Device;
+}HAL_I2C_DEVICE_T;
 
 enum HAL_TIMER_LseRoute
 {
@@ -56,35 +56,35 @@ enum HAL_TIMER_LseRoute
 typedef struct
 {
 	TIM_TypeDef *m_pstRegisters;
-	HAL_ClockGate m_stClock;
+	HAL_CLOCK_GATE_T m_stClock;
 	IRQn_Type m_eIRQn;
 	uint8_t m_ucBus;
 	uint8_t m_ucChannels;  // Number of compare channels
 	uint8_t m_ucWide;      // 1 - 32 bit counter
 	uint8_t m_ucUpOnly;    // 1 - the counter cannot count down
 	uint8_t m_ucLseRoute;  // How the alternate (LSE) clock is connected
-}HAL_TIMER_Device;
+}HAL_TIMER_DEVICE_T;
 
 typedef struct
 {
 	DMA_TypeDef *m_pstRegisters;
-	HAL_ClockGate m_stClock;
+	HAL_CLOCK_GATE_T m_stClock;
 	uint8_t m_ucChannels;
 	IRQn_Type m_aeIRQn[HAL_DMA_CHANNEL_NO];
-}HAL_DMA_Device;
+}HAL_DMA_DEVICE_T;
 
 /* Device tables. They are constant, live in flash and are provided by the family. */
-extern const HAL_ClockGate g_astHAL_GPIO_Clock[HAL_GPIO_NO];
+extern const HAL_CLOCK_GATE_T g_astHAL_GPIO_Clock[HAL_GPIO_NO];
 extern const uint8_t g_aucHAL_GPIO_ExtiCode[HAL_GPIO_NO];
 extern const IRQn_Type g_aeHAL_GPIO_IRQn[16];
-extern const HAL_UART_Device g_astHAL_UART_Device[HAL_UART_NO];
-extern const HAL_SPI_Device g_astHAL_SPI_Device[HAL_SPI_NO];
-extern const HAL_I2C_Device g_astHAL_I2C_Device[HAL_I2C_NO];
-extern const HAL_TIMER_Device g_astHAL_TIMER_Device[HAL_TIMER_NO];
-extern const HAL_DMA_Device g_astHAL_DMA_Device[HAL_DMA_NO];
-extern const HAL_ClockGate g_stHAL_DAC_Clock;
-extern const HAL_ClockGate g_stHAL_ADC_Clock;
-extern const HAL_ClockGate g_stHAL_CRC_Clock;
+extern const HAL_UART_DEVICE_T g_astHAL_UART_Device[HAL_UART_NO];
+extern const HAL_SPI_DEVICE_T g_astHAL_SPI_Device[HAL_SPI_NO];
+extern const HAL_I2C_DEVICE_T g_astHAL_I2C_Device[HAL_I2C_NO];
+extern const HAL_TIMER_DEVICE_T g_astHAL_TIMER_Device[HAL_TIMER_NO];
+extern const HAL_DMA_DEVICE_T g_astHAL_DMA_Device[HAL_DMA_NO];
+extern const HAL_CLOCK_GATE_T g_stHAL_DAC_Clock;
+extern const HAL_CLOCK_GATE_T g_stHAL_ADC_Clock;
+extern const HAL_CLOCK_GATE_T g_stHAL_CRC_Clock;
 
 /**************************************************************************************************
  * @brief   Masks the interrupts
@@ -129,7 +129,7 @@ static inline void HAL_PRIVATE_Modify(volatile uint32_t *p_pulRegister, uint32_t
  * @param[in] p_pstClock - the clock gate
  * @remarks   The register is read back: the peripheral is usable two clock cycles after the write.
  **************************************************************************************************/
-static inline void HAL_PRIVATE_ClockEnable(const HAL_ClockGate *p_pstClock)
+static inline void HAL_PRIVATE_ClockEnable(const HAL_CLOCK_GATE_T *p_pstClock)
 {
 	volatile uint32_t l_ulDummy;
 
@@ -144,7 +144,7 @@ static inline void HAL_PRIVATE_ClockEnable(const HAL_ClockGate *p_pstClock)
  * @param[in] p_eIRQn - the interrupt line
  * @param[in] p_pstInterrupt - the priority
  **************************************************************************************************/
-static inline void HAL_PRIVATE_EnableIRQ(IRQn_Type p_eIRQn, const HAL_Interrupt *p_pstInterrupt)
+static inline void HAL_PRIVATE_EnableIRQ(IRQn_Type p_eIRQn, const HAL_INTERRUPT_T *p_pstInterrupt)
 {
 	NVIC_SetPriority(p_eIRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), p_pstInterrupt->m_ucPrePriority, p_pstInterrupt->m_ucSubPriority));
 	NVIC_EnableIRQ(p_eIRQn);

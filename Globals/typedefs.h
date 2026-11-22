@@ -27,7 +27,7 @@ typedef enum
 	HAL_ERROR__CONFLICT,        // The resource is already used with other settings
 	HAL_ERROR__NACK,            // I2C address or data byte not acknowledged
 	HAL_ERROR__BUS              // Bus error (arbitration, overrun, mode fault, flash error flags)
-}HAL_Return_Code;
+}HAL_RETURN_CODE_T;
 
 enum HAL_State
 {
@@ -40,6 +40,6 @@ typedef struct
 {
 	uint8_t m_ucPrePriority : 4;
 	uint8_t m_ucSubPriority : 4;
-}HAL_Interrupt;
+}HAL_INTERRUPT_T;
 
 #endif /* TYPEDEFS_H_ */

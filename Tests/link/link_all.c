@@ -44,24 +44,24 @@ static void TEST_AdcCallback(void *p_pvContext, uint16_t p_unValue)
 
 int main(void)
 {
-	static const HAL_CLOCK_Flags l_stClock = BOARD_CLOCK_FLAGS;
-	static const HAL_GPIO_Flags l_stOutput = { .m_ucMode = HAL_GPIO_MODE__OUTPUT };
-	static const HAL_GPIO_InterruptFlags l_stEdge = { .m_ucEdge = HAL_GPIO_BOTH, .m_pfCallback = TEST_Callback };
-	static const HAL_UART_Flags l_stUart = { .m_ulBaud = 921600, .m_stTxPin = BOARD_VCP_TX_PIN, .m_stRxPin = BOARD_VCP_RX_PIN, .m_pfRxCallback = TEST_ByteCallback, .m_pfTxCallback = TEST_TxCallback, .m_pfTxCompleteCallback = TEST_Callback, .m_pfErrorCallback = TEST_ByteCallback };
-	static const HAL_SPI_Flags l_stSpi = { .m_ulSpeed = 8000000, .m_stClkPin = BOARD_SPI_CLK_PIN, .m_stMisoPin = BOARD_SPI_MISO_PIN, .m_stMosiPin = BOARD_SPI_MOSI_PIN, .m_stSsPin = BOARD_NO_PIN, .m_pfRxCallback = TEST_ByteCallback, .m_pfTxCallback = TEST_TxCallback, .m_pfErrorCallback = TEST_ByteCallback };
-	static const HAL_I2C_Flags l_stI2c = { .m_ulSpeed = 400000, .m_stSclPin = BOARD_I2C_SCL_PIN, .m_stSdaPin = BOARD_I2C_SDA_PIN };
-	static const HAL_TIMER_Flags l_stTimer = { .m_unPrescaler = 31, .m_ulUpdate = 999, .m_pfUpdateCallback = TEST_Callback, .m_apfCompareCallback = { TEST_Callback } };
-	static const HAL_TIMER_ChannelFlags l_stChannel = { .m_ucOutput = HAL_TIMER_OUTPUT__PWM, .m_ulCompare = 0, .m_stPin = { HAL_GPIO_0, HAL_GPIO_PIN_0, HAL_GPIO_FUNCTION__1 } };
-	static const HAL_ADC_Flags l_stAdc = { .m_pfConversionCallback = TEST_AdcCallback };
-	static const HAL_ADC_ChannelFlags l_stAdcChannel = { .m_ucSampleTime = HAL_ADC_SAMPLE_TIME__384, .m_stPin = BOARD_NO_PIN };
-	static const HAL_DAC_Flags l_stDac = { .m_ucBuffer = HAL_ENABLE, .m_stPin = { HAL_GPIO_0, HAL_GPIO_PIN_4, 0 } };
-	static const HAL_DMA_Flags l_stDma = { .m_ucMemoryIncrement = HAL_ENABLE, .m_pfCompleteCallback = TEST_Callback, .m_pfHalfCallback = TEST_Callback, .m_pfErrorCallback = TEST_Callback };
-	static const HAL_LPM_Flags l_stLpm = { .m_pfEnterCallback = TEST_Callback, .m_pfExitCallback = TEST_Callback };
+	static const HAL_CLOCK_FLAGS_T l_stClock = BOARD_CLOCK_FLAGS;
+	static const HAL_GPIO_FLAGS_T l_stOutput = { .m_ucMode = HAL_GPIO_MODE__OUTPUT };
+	static const HAL_GPIO_INTERRUPT_FLAGS_T l_stEdge = { .m_ucEdge = HAL_GPIO_BOTH, .m_pfCallback = TEST_Callback };
+	static const HAL_UART_FLAGS_T l_stUart = { .m_ulBaud = 921600, .m_stTxPin = BOARD_VCP_TX_PIN, .m_stRxPin = BOARD_VCP_RX_PIN, .m_pfRxCallback = TEST_ByteCallback, .m_pfTxCallback = TEST_TxCallback, .m_pfTxCompleteCallback = TEST_Callback, .m_pfErrorCallback = TEST_ByteCallback };
+	static const HAL_SPI_FLAGS_T l_stSpi = { .m_ulSpeed = 8000000, .m_stClkPin = BOARD_SPI_CLK_PIN, .m_stMisoPin = BOARD_SPI_MISO_PIN, .m_stMosiPin = BOARD_SPI_MOSI_PIN, .m_stSsPin = BOARD_NO_PIN, .m_pfRxCallback = TEST_ByteCallback, .m_pfTxCallback = TEST_TxCallback, .m_pfErrorCallback = TEST_ByteCallback };
+	static const HAL_I2C_FLAGS_T l_stI2c = { .m_ulSpeed = 400000, .m_stSclPin = BOARD_I2C_SCL_PIN, .m_stSdaPin = BOARD_I2C_SDA_PIN };
+	static const HAL_TIMER_FLAGS_T l_stTimer = { .m_unPrescaler = 31, .m_ulUpdate = 999, .m_pfUpdateCallback = TEST_Callback, .m_apfCompareCallback = { TEST_Callback } };
+	static const HAL_TIMER_CHANNEL_FLAGS_T l_stChannel = { .m_ucOutput = HAL_TIMER_OUTPUT__PWM, .m_ulCompare = 0, .m_stPin = { HAL_GPIO_0, HAL_GPIO_PIN_0, HAL_GPIO_FUNCTION__1 } };
+	static const HAL_ADC_FLAGS_T l_stAdc = { .m_pfConversionCallback = TEST_AdcCallback };
+	static const HAL_ADC_CHANNEL_FLAGS_T l_stAdcChannel = { .m_ucSampleTime = HAL_ADC_SAMPLE_TIME__384, .m_stPin = BOARD_NO_PIN };
+	static const HAL_DAC_FLAGS_T l_stDac = { .m_ucBuffer = HAL_ENABLE, .m_stPin = { HAL_GPIO_0, HAL_GPIO_PIN_4, 0 } };
+	static const HAL_DMA_FLAGS_T l_stDma = { .m_ucMemoryIncrement = HAL_ENABLE, .m_pfCompleteCallback = TEST_Callback, .m_pfHalfCallback = TEST_Callback, .m_pfErrorCallback = TEST_Callback };
+	static const HAL_LPM_FLAGS_T l_stLpm = { .m_pfEnterCallback = TEST_Callback, .m_pfExitCallback = TEST_Callback };
 	static uint32_t l_aulHalfPage[HAL_FLASH_HALF_PAGE_SIZE / 4U];
 	static uint8_t l_aucBuff[16];
-	HAL_CLOCK_Timeout l_stTimeout;
-	HAL_CLOCK_Flags l_stRunning;
-	HAL_GPIO_Pin l_stPin = BOARD_NO_PIN;
+	HAL_CLOCK_TIMEOUT_T l_stTimeout;
+	HAL_CLOCK_FLAGS_T l_stRunning;
+	HAL_GPIO_PIN_T l_stPin = BOARD_NO_PIN;
 	uint32_t l_ulValue = 0;
 	uint16_t l_unValue = 0;
 	uint8_t l_ucValue = 0;

@@ -21,9 +21,9 @@ enum HAL_AES_Mode
 	HAL_AES_MODE__CTR
 };
 
-HAL_Return_Code HAL_AES_Config(uint8_t p_ucMode);
-HAL_Return_Code HAL_AES_SetKey(const uint8_t *p_pucKey);
-HAL_Return_Code HAL_AES_Encrypt(const uint8_t *p_pucData, uint8_t *p_pucResult);
-HAL_Return_Code HAL_AES_Decrypt(const uint8_t *p_pucData, uint8_t *p_pucResult);
+HAL_RETURN_CODE_T HAL_AES_Config(uint8_t p_ucMode);
+HAL_RETURN_CODE_T HAL_AES_SetKey(const uint8_t *p_pucKey);
+HAL_RETURN_CODE_T HAL_AES_Encrypt(const uint8_t *p_pucData, uint8_t *p_pucResult);
+HAL_RETURN_CODE_T HAL_AES_Decrypt(const uint8_t *p_pucData, uint8_t *p_pucResult);
 
 #endif /* HAL_AES_H_ */

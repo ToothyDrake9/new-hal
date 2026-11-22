@@ -60,10 +60,10 @@ enum HAL_UART_TxAction
 #endif
 
 /* The callbacks run in interrupt context. */
-typedef void (*HAL_UART_RX_CALLBACK) (void *p_pvContext, uint8_t p_ucByte);
-typedef uint8_t (*HAL_UART_TX_CALLBACK) (void *p_pvContext, uint8_t *p_pucByte);
-typedef void (*HAL_UART_EVENT_CALLBACK) (void *p_pvContext);
-typedef void (*HAL_UART_ERROR_CALLBACK) (void *p_pvContext, uint8_t p_ucErrors);
+typedef void (*HAL_UART_RX_CALLBACK_T) (void *p_pvContext, uint8_t p_ucByte);
+typedef uint8_t (*HAL_UART_TX_CALLBACK_T) (void *p_pvContext, uint8_t *p_pucByte);
+typedef void (*HAL_UART_EVENT_CALLBACK_T) (void *p_pvContext);
+typedef void (*HAL_UART_ERROR_CALLBACK_T) (void *p_pvContext, uint8_t p_ucErrors);
 
 typedef struct
 {
@@ -72,23 +72,23 @@ typedef struct
 	uint8_t m_ucParity : 2;            // e.g. HAL_UART_PARITY__NONE
 	uint8_t m_ucStopBits : 1;          // e.g. HAL_UART_STOPBITS__1
 	uint8_t m_ucIrDA : 1;              // HAL_ENABLE - IrDA encoding
-	HAL_GPIO_Pin m_stTxPin;            // Module HAL_GPIO_NONE - no transmitter
-	HAL_GPIO_Pin m_stRxPin;            // Module HAL_GPIO_NONE - no receiver
-	HAL_Interrupt m_stInterrupt;       // Priority of the UART interrupt
-	HAL_UART_RX_CALLBACK m_pfRxCallback;                  // NULL - received bytes are polled
-	HAL_UART_TX_CALLBACK m_pfTxCallback;                  // NULL - no interrupt driven transmission
-	HAL_UART_EVENT_CALLBACK m_pfTxCompleteCallback;       // NULL - not used
-	HAL_UART_ERROR_CALLBACK m_pfErrorCallback;            // NULL - errors are dropped
+	HAL_GPIO_PIN_T m_stTxPin;            // Module HAL_GPIO_NONE - no transmitter
+	HAL_GPIO_PIN_T m_stRxPin;            // Module HAL_GPIO_NONE - no receiver
+	HAL_INTERRUPT_T m_stInterrupt;       // Priority of the UART interrupt
+	HAL_UART_RX_CALLBACK_T m_pfRxCallback;                  // NULL - received bytes are polled
+	HAL_UART_TX_CALLBACK_T m_pfTxCallback;                  // NULL - no interrupt driven transmission
+	HAL_UART_EVENT_CALLBACK_T m_pfTxCompleteCallback;       // NULL - not used
+	HAL_UART_ERROR_CALLBACK_T m_pfErrorCallback;            // NULL - errors are dropped
 	void *m_pvContext;                 // Given back to the callbacks
-}HAL_UART_Flags;
+}HAL_UART_FLAGS_T;
 
-HAL_Return_Code HAL_UART_Config(uint8_t p_ucModule, const HAL_UART_Flags *p_pstFlags);
-HAL_Return_Code HAL_UART_SetState(uint8_t p_ucModule, uint8_t p_ucState);
-HAL_Return_Code HAL_UART_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucInterrupt, uint8_t p_ucState);
-HAL_Return_Code HAL_UART_GetBaud(uint8_t p_ucModule, uint32_t *p_pulBaud);
-HAL_Return_Code HAL_UART_ReadByte(uint8_t p_ucModule, uint8_t *p_pucByte, uint32_t p_ulTimeoutMs);
-HAL_Return_Code HAL_UART_WriteByte(uint8_t p_ucModule, uint8_t p_ucByte);
-HAL_Return_Code HAL_UART_WriteBuff(uint8_t p_ucModule, const uint8_t *p_pucBuff, uint16_t p_unSize);
-HAL_Return_Code HAL_UART_Flush(uint8_t p_ucModule);
+HAL_RETURN_CODE_T HAL_UART_Config(uint8_t p_ucModule, const HAL_UART_FLAGS_T *p_pstFlags);
+HAL_RETURN_CODE_T HAL_UART_SetState(uint8_t p_ucModule, uint8_t p_ucState);
+HAL_RETURN_CODE_T HAL_UART_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucInterrupt, uint8_t p_ucState);
+HAL_RETURN_CODE_T HAL_UART_GetBaud(uint8_t p_ucModule, uint32_t *p_pulBaud);
+HAL_RETURN_CODE_T HAL_UART_ReadByte(uint8_t p_ucModule, uint8_t *p_pucByte, uint32_t p_ulTimeoutMs);
+HAL_RETURN_CODE_T HAL_UART_WriteByte(uint8_t p_ucModule, uint8_t p_ucByte);
+HAL_RETURN_CODE_T HAL_UART_WriteBuff(uint8_t p_ucModule, const uint8_t *p_pucBuff, uint16_t p_unSize);
+HAL_RETURN_CODE_T HAL_UART_Flush(uint8_t p_ucModule);
 
 #endif /* HAL_UART_H_ */

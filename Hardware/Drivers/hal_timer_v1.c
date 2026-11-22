@@ -13,21 +13,21 @@
 
 typedef struct
 {
-	HAL_TIMER_CALLBACK m_apfCallback[HAL_TIMER_INTERRUPT_NO]; // Index: HAL_TIMER_UPDATE, HAL_TIMER_COMPARE1, ...
+	HAL_TIMER_CALLBACK_T m_apfCallback[HAL_TIMER_INTERRUPT_NO]; // Index: HAL_TIMER_UPDATE, HAL_TIMER_COMPARE1, ...
 	void *m_pvContext;
 	uint8_t m_ucConfigured;
-}HAL_TIMER_Module_State;
+}HAL_TIMER_MODULE_STATE_T;
 
-static HAL_TIMER_Module_State g_astHAL_TIMER_State[HAL_TIMER_NO];
+static HAL_TIMER_MODULE_STATE_T g_astHAL_TIMER_State[HAL_TIMER_NO];
 
 /**************************************************************************************************
  * @brief     Checks a module argument
  * @param[in] p_ucModule - the TIMER module (e.g. HAL_TIMER_0)
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  **************************************************************************************************/
-static HAL_Return_Code HAL_TIMER_Check(uint8_t p_ucModule)
+static HAL_RETURN_CODE_T HAL_TIMER_Check(uint8_t p_ucModule)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
 
 	if (p_ucModule >= HAL_TIMER_NO)
 	{
@@ -87,11 +87,11 @@ static volatile uint32_t *HAL_TIMER_GetCompareRegister(TIM_TypeDef *p_pstTimer, 
  * @remarks   The timer is left stopped with all its interrupt sources disabled and all compare
  *            channels unconfigured. The NVIC line is enabled here when a callback is given.
  **************************************************************************************************/
-HAL_Return_Code HAL_TIMER_Config(uint8_t p_ucModule, const HAL_TIMER_Flags *p_pstFlags)
+HAL_RETURN_CODE_T HAL_TIMER_Config(uint8_t p_ucModule, const HAL_TIMER_FLAGS_T *p_pstFlags)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
-	const HAL_TIMER_Device *l_pstDevice = NULL;
-	HAL_TIMER_Module_State *l_pstState;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
+	const HAL_TIMER_DEVICE_T *l_pstDevice = NULL;
+	HAL_TIMER_MODULE_STATE_T *l_pstState;
 	TIM_TypeDef *l_pstTimer;
 	uint32_t l_ulControl = 0;
 	uint8_t l_ucIndex;
@@ -214,12 +214,12 @@ HAL_Return_Code HAL_TIMER_Config(uint8_t p_ucModule, const HAL_TIMER_Flags *p_ps
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  * @remarks   Call after HAL_TIMER_Config. The compare value takes effect at once.
  **************************************************************************************************/
-HAL_Return_Code HAL_TIMER_ConfigChannel(uint8_t p_ucModule, uint8_t p_ucCompare, const HAL_TIMER_ChannelFlags *p_pstFlags)
+HAL_RETURN_CODE_T HAL_TIMER_ConfigChannel(uint8_t p_ucModule, uint8_t p_ucCompare, const HAL_TIMER_CHANNEL_FLAGS_T *p_pstFlags)
 {
-	static const HAL_GPIO_Flags l_stPinFlags = { HAL_GPIO_MODE__FUNCTION, HAL_GPIO_TYPE__PUSH_PULL, HAL_GPIO_PULL__NO_PULL, HAL_GPIO_SPEED__HIGH, 0 };
+	static const HAL_GPIO_FLAGS_T l_stPinFlags = { HAL_GPIO_MODE__FUNCTION, HAL_GPIO_TYPE__PUSH_PULL, HAL_GPIO_PULL__NO_PULL, HAL_GPIO_SPEED__HIGH, 0 };
 	static const uint8_t l_aucMode[] = { 0x00, 0x03, 0x06, 0x07 }; // Frozen, toggle, PWM 1, PWM 2
-	HAL_Return_Code l_eReturnCode = HAL_TIMER_Check(p_ucModule);
-	const HAL_TIMER_Device *l_pstDevice = NULL;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_TIMER_Check(p_ucModule);
+	const HAL_TIMER_DEVICE_T *l_pstDevice = NULL;
 	volatile uint32_t *l_pulMode;
 	TIM_TypeDef *l_pstTimer;
 	uint32_t l_ulState;
@@ -284,9 +284,9 @@ HAL_Return_Code HAL_TIMER_ConfigChannel(uint8_t p_ucModule, uint8_t p_ucCompare,
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  * @remarks   Pending events are kept: use HAL_TIMER_SetInterrupt to start from a clean flag.
  **************************************************************************************************/
-HAL_Return_Code HAL_TIMER_SetState(uint8_t p_ucModule, uint8_t p_ucState)
+HAL_RETURN_CODE_T HAL_TIMER_SetState(uint8_t p_ucModule, uint8_t p_ucState)
 {
-	HAL_Return_Code l_eReturnCode = HAL_TIMER_Check(p_ucModule);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_TIMER_Check(p_ucModule);
 
 	if (l_eReturnCode == HAL_SUCCESS)
 	{
@@ -312,9 +312,9 @@ HAL_Return_Code HAL_TIMER_SetState(uint8_t p_ucModule, uint8_t p_ucState)
  *            not configured or no callback was given for this interrupt
  * @remarks   Enabling a source first clears its stale flag. Only this source changes.
  **************************************************************************************************/
-HAL_Return_Code HAL_TIMER_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucInterrupt, uint8_t p_ucState)
+HAL_RETURN_CODE_T HAL_TIMER_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucInterrupt, uint8_t p_ucState)
 {
-	HAL_Return_Code l_eReturnCode = HAL_TIMER_Check(p_ucModule);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_TIMER_Check(p_ucModule);
 	TIM_TypeDef *l_pstTimer;
 
 	if (l_eReturnCode == HAL_SUCCESS)
@@ -354,9 +354,9 @@ HAL_Return_Code HAL_TIMER_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucInterrupt
  * @param[in] p_ulCounter - the TIMER counter value
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  **************************************************************************************************/
-HAL_Return_Code HAL_TIMER_SetCounter(uint8_t p_ucModule, uint32_t p_ulCounter)
+HAL_RETURN_CODE_T HAL_TIMER_SetCounter(uint8_t p_ucModule, uint32_t p_ulCounter)
 {
-	HAL_Return_Code l_eReturnCode = HAL_TIMER_Check(p_ucModule);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_TIMER_Check(p_ucModule);
 
 	if (l_eReturnCode == HAL_SUCCESS)
 	{
@@ -392,9 +392,9 @@ uint32_t HAL_TIMER_GetCounter(uint8_t p_ucModule)
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  * @remarks   The value takes effect at once (no preload).
  **************************************************************************************************/
-HAL_Return_Code HAL_TIMER_SetCompare(uint8_t p_ucModule, uint8_t p_ucCompare, uint32_t p_ulValue)
+HAL_RETURN_CODE_T HAL_TIMER_SetCompare(uint8_t p_ucModule, uint8_t p_ucCompare, uint32_t p_ulValue)
 {
-	HAL_Return_Code l_eReturnCode = HAL_TIMER_Check(p_ucModule);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_TIMER_Check(p_ucModule);
 	TIM_TypeDef *l_pstTimer;
 
 	if (l_eReturnCode == HAL_SUCCESS)
@@ -429,9 +429,9 @@ HAL_Return_Code HAL_TIMER_SetCompare(uint8_t p_ucModule, uint8_t p_ucCompare, ui
  * @param[out] p_pulValue - the value
  * @return     HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  **************************************************************************************************/
-HAL_Return_Code HAL_TIMER_GetCompare(uint8_t p_ucModule, uint8_t p_ucCompare, uint32_t *p_pulValue)
+HAL_RETURN_CODE_T HAL_TIMER_GetCompare(uint8_t p_ucModule, uint8_t p_ucCompare, uint32_t *p_pulValue)
 {
-	HAL_Return_Code l_eReturnCode = HAL_TIMER_Check(p_ucModule);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_TIMER_Check(p_ucModule);
 	TIM_TypeDef *l_pstTimer;
 
 	if (l_eReturnCode == HAL_SUCCESS)
@@ -467,9 +467,9 @@ HAL_Return_Code HAL_TIMER_GetCompare(uint8_t p_ucModule, uint8_t p_ucCompare, ui
  * @remarks    This is the bus timer clock. A timer configured with the alternate clock counts
  *             the LSE (32768 Hz) instead.
  **************************************************************************************************/
-HAL_Return_Code HAL_TIMER_GetClock(uint8_t p_ucModule, uint32_t *p_pulClock)
+HAL_RETURN_CODE_T HAL_TIMER_GetClock(uint8_t p_ucModule, uint32_t *p_pulClock)
 {
-	HAL_Return_Code l_eReturnCode = HAL_ERROR__PARAMETER;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_ERROR__PARAMETER;
 
 	if ((p_ucModule < HAL_TIMER_NO) && (p_pulClock != NULL))
 	{
@@ -486,7 +486,7 @@ HAL_Return_Code HAL_TIMER_GetClock(uint8_t p_ucModule, uint32_t *p_pulClock)
  **************************************************************************************************/
 static void HAL_TIMER_Interrupt(uint8_t p_ucModule)
 {
-	const HAL_TIMER_Module_State *l_pstState = &g_astHAL_TIMER_State[p_ucModule];
+	const HAL_TIMER_MODULE_STATE_T *l_pstState = &g_astHAL_TIMER_State[p_ucModule];
 	TIM_TypeDef *l_pstTimer = g_astHAL_TIMER_Device[p_ucModule].m_pstRegisters;
 	uint32_t l_ulPending = l_pstTimer->SR & l_pstTimer->DIER & 0x1FUL;
 	uint8_t l_ucInterrupt;

@@ -17,10 +17,10 @@ static uint8_t g_aucHAL_DAC_Configured[HAL_DAC_NO];
  * @return    HAL_SUCCESS or HAL_ERROR__PARAMETER
  * @remarks   The channel is left disabled with an output value of 0.
  **************************************************************************************************/
-HAL_Return_Code HAL_DAC_Config(uint8_t p_ucModule, const HAL_DAC_Flags *p_pstFlags)
+HAL_RETURN_CODE_T HAL_DAC_Config(uint8_t p_ucModule, const HAL_DAC_FLAGS_T *p_pstFlags)
 {
-	static const HAL_GPIO_Flags l_stPinFlags = { HAL_GPIO_MODE__ANALOG, HAL_GPIO_TYPE__PUSH_PULL, HAL_GPIO_PULL__NO_PULL, HAL_GPIO_SPEED__LOW, 0 };
-	HAL_Return_Code l_eReturnCode = HAL_ERROR__PARAMETER;
+	static const HAL_GPIO_FLAGS_T l_stPinFlags = { HAL_GPIO_MODE__ANALOG, HAL_GPIO_TYPE__PUSH_PULL, HAL_GPIO_PULL__NO_PULL, HAL_GPIO_SPEED__LOW, 0 };
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_ERROR__PARAMETER;
 	uint32_t l_ulShift;
 
 	if ((p_ucModule < HAL_DAC_NO) && (p_pstFlags != NULL))
@@ -59,9 +59,9 @@ HAL_Return_Code HAL_DAC_Config(uint8_t p_ucModule, const HAL_DAC_Flags *p_pstFla
  * @param[in] p_ucState - the DAC state (e.g. HAL_ENABLE)
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  **************************************************************************************************/
-HAL_Return_Code HAL_DAC_SetState(uint8_t p_ucModule, uint8_t p_ucState)
+HAL_RETURN_CODE_T HAL_DAC_SetState(uint8_t p_ucModule, uint8_t p_ucState)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
 
 	if (p_ucModule >= HAL_DAC_NO)
 	{
@@ -89,9 +89,9 @@ HAL_Return_Code HAL_DAC_SetState(uint8_t p_ucModule, uint8_t p_ucState)
  * @param[in] p_unValue - the output value, 0 to HAL_DAC_MAXIMUM
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  **************************************************************************************************/
-HAL_Return_Code HAL_DAC_Write(uint8_t p_ucModule, uint16_t p_unValue)
+HAL_RETURN_CODE_T HAL_DAC_Write(uint8_t p_ucModule, uint16_t p_unValue)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
 
 	if ((p_ucModule >= HAL_DAC_NO) || (p_unValue > HAL_DAC_MAXIMUM))
 	{

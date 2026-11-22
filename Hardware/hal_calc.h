@@ -18,9 +18,9 @@
  * @param[out] p_pulDivider - the value for the baud rate register
  * @return     HAL_SUCCESS, or HAL_ERROR__PARAMETER when the baud rate cannot be produced
  **************************************************************************************************/
-static inline HAL_Return_Code HAL_CALC_UartDivider(uint32_t p_ulClock, uint32_t p_ulBaud, uint32_t *p_pulDivider)
+static inline HAL_RETURN_CODE_T HAL_CALC_UartDivider(uint32_t p_ulClock, uint32_t p_ulBaud, uint32_t *p_pulDivider)
 {
-	HAL_Return_Code l_eReturnCode = HAL_ERROR__PARAMETER;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_ERROR__PARAMETER;
 	uint32_t l_ulDivider;
 
 	if ((p_ulBaud != 0U) && (p_ulBaud <= (p_ulClock / 16U)))
@@ -45,9 +45,9 @@ static inline HAL_Return_Code HAL_CALC_UartDivider(uint32_t p_ulClock, uint32_t 
  * @param[out] p_pulSpeed - the SPI clock that is obtained in Hz
  * @return     HAL_SUCCESS, or HAL_ERROR__PARAMETER when even clock/256 is too fast
  **************************************************************************************************/
-static inline HAL_Return_Code HAL_CALC_SpiPrescaler(uint32_t p_ulClock, uint32_t p_ulSpeed, uint8_t *p_pucCode, uint32_t *p_pulSpeed)
+static inline HAL_RETURN_CODE_T HAL_CALC_SpiPrescaler(uint32_t p_ulClock, uint32_t p_ulSpeed, uint8_t *p_pucCode, uint32_t *p_pulSpeed)
 {
-	HAL_Return_Code l_eReturnCode = HAL_ERROR__PARAMETER;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_ERROR__PARAMETER;
 	uint8_t l_ucCode;
 
 	for (l_ucCode = 0; l_ucCode < 8U; l_ucCode++)
@@ -78,9 +78,9 @@ static inline HAL_Return_Code HAL_CALC_SpiPrescaler(uint32_t p_ulClock, uint32_t
  * @return     HAL_SUCCESS, or HAL_ERROR__PARAMETER when the clock is too slow for the speed
  * @remarks    The divider is rounded up, so the bus is never faster than requested.
  **************************************************************************************************/
-static inline HAL_Return_Code HAL_CALC_I2cTiming(uint32_t p_ulClock, uint32_t p_ulSpeed, uint16_t *p_punFrequency, uint16_t *p_punClockControl, uint16_t *p_punRiseTime)
+static inline HAL_RETURN_CODE_T HAL_CALC_I2cTiming(uint32_t p_ulClock, uint32_t p_ulSpeed, uint16_t *p_punFrequency, uint16_t *p_punClockControl, uint16_t *p_punRiseTime)
 {
-	HAL_Return_Code l_eReturnCode = HAL_ERROR__PARAMETER;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_ERROR__PARAMETER;
 	uint32_t l_ulFrequency = p_ulClock / 1000000U;
 	uint32_t l_ulClockControl;
 

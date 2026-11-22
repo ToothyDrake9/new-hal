@@ -28,16 +28,16 @@ enum HAL_I2C_Stop
 typedef struct
 {
 	uint32_t m_ulSpeed;         // Bus speed in Hz, up to 400000 (e.g. 100000)
-	HAL_GPIO_Pin m_stSclPin;
-	HAL_GPIO_Pin m_stSdaPin;
-}HAL_I2C_Flags;
+	HAL_GPIO_PIN_T m_stSclPin;
+	HAL_GPIO_PIN_T m_stSdaPin;
+}HAL_I2C_FLAGS_T;
 
-HAL_Return_Code HAL_I2C_Config(uint8_t p_ucModule, const HAL_I2C_Flags *p_pstFlags);
-HAL_Return_Code HAL_I2C_SetState(uint8_t p_ucModule, uint8_t p_ucState);
-HAL_Return_Code HAL_I2C_Write(uint8_t p_ucModule, uint8_t p_ucAddress, const uint8_t *p_pucBuff, uint16_t p_unSize, uint8_t p_ucStop);
-HAL_Return_Code HAL_I2C_Read(uint8_t p_ucModule, uint8_t p_ucAddress, uint8_t *p_pucBuff, uint16_t p_unSize);
-HAL_Return_Code HAL_I2C_WriteRead(uint8_t p_ucModule, uint8_t p_ucAddress, const uint8_t *p_pucTxBuff, uint16_t p_unTxSize, uint8_t *p_pucRxBuff, uint16_t p_unRxSize);
-HAL_Return_Code HAL_I2C_IsDeviceReady(uint8_t p_ucModule, uint8_t p_ucAddress);
-HAL_Return_Code HAL_I2C_Recover(uint8_t p_ucModule);
+HAL_RETURN_CODE_T HAL_I2C_Config(uint8_t p_ucModule, const HAL_I2C_FLAGS_T *p_pstFlags);
+HAL_RETURN_CODE_T HAL_I2C_SetState(uint8_t p_ucModule, uint8_t p_ucState);
+HAL_RETURN_CODE_T HAL_I2C_Write(uint8_t p_ucModule, uint8_t p_ucAddress, const uint8_t *p_pucBuff, uint16_t p_unSize, uint8_t p_ucStop);
+HAL_RETURN_CODE_T HAL_I2C_Read(uint8_t p_ucModule, uint8_t p_ucAddress, uint8_t *p_pucBuff, uint16_t p_unSize);
+HAL_RETURN_CODE_T HAL_I2C_WriteRead(uint8_t p_ucModule, uint8_t p_ucAddress, const uint8_t *p_pucTxBuff, uint16_t p_unTxSize, uint8_t *p_pucRxBuff, uint16_t p_unRxSize);
+HAL_RETURN_CODE_T HAL_I2C_IsDeviceReady(uint8_t p_ucModule, uint8_t p_ucAddress);
+HAL_RETURN_CODE_T HAL_I2C_Recover(uint8_t p_ucModule);
 
 #endif /* HAL_I2C_H_ */

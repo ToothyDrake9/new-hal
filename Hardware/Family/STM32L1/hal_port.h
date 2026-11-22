@@ -125,7 +125,7 @@ typedef struct
 	volatile uint32_t LCKR;
 	volatile uint32_t AFR[2];
 	volatile uint32_t BRR;
-}HAL_GPIO_Registers;
+}HAL_GPIO_REGISTERS_T;
 
 /* The ports are not in alphabetical order in memory on this family: A B C D E H F G. */
 #define HAL_GPIO_ADDRESS_TABLE { 0x40020000UL, 0x40020400UL, 0x40020800UL, 0x40020C00UL, \

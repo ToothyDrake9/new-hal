@@ -16,7 +16,7 @@
  * @brief   RNG configuration
  * @return  HAL_ERROR__NOT_SUPPORTED
  **************************************************************************************************/
-HAL_Return_Code HAL_RNG_Config(void)
+HAL_RETURN_CODE_T HAL_RNG_Config(void)
 {
 	return HAL_ERROR__NOT_SUPPORTED;
 }
@@ -26,7 +26,7 @@ HAL_Return_Code HAL_RNG_Config(void)
  * @param[out] p_pulValue - not written
  * @return     HAL_ERROR__NOT_SUPPORTED
  **************************************************************************************************/
-HAL_Return_Code HAL_RNG_Read(uint32_t *p_pulValue)
+HAL_RETURN_CODE_T HAL_RNG_Read(uint32_t *p_pulValue)
 {
 	(void) p_pulValue;
 
@@ -38,7 +38,7 @@ HAL_Return_Code HAL_RNG_Read(uint32_t *p_pulValue)
  * @param[in] p_ucMode - the AES mode (e.g. HAL_AES_MODE__ECB)
  * @return    HAL_ERROR__NOT_SUPPORTED
  **************************************************************************************************/
-HAL_Return_Code HAL_AES_Config(uint8_t p_ucMode)
+HAL_RETURN_CODE_T HAL_AES_Config(uint8_t p_ucMode)
 {
 	(void) p_ucMode;
 
@@ -50,7 +50,7 @@ HAL_Return_Code HAL_AES_Config(uint8_t p_ucMode)
  * @param[in] p_pucKey - the key
  * @return    HAL_ERROR__NOT_SUPPORTED
  **************************************************************************************************/
-HAL_Return_Code HAL_AES_SetKey(const uint8_t *p_pucKey)
+HAL_RETURN_CODE_T HAL_AES_SetKey(const uint8_t *p_pucKey)
 {
 	(void) p_pucKey;
 
@@ -63,7 +63,7 @@ HAL_Return_Code HAL_AES_SetKey(const uint8_t *p_pucKey)
  * @param[out] p_pucResult - not written
  * @return     HAL_ERROR__NOT_SUPPORTED
  **************************************************************************************************/
-HAL_Return_Code HAL_AES_Encrypt(const uint8_t *p_pucData, uint8_t *p_pucResult)
+HAL_RETURN_CODE_T HAL_AES_Encrypt(const uint8_t *p_pucData, uint8_t *p_pucResult)
 {
 	(void) p_pucData;
 	(void) p_pucResult;
@@ -77,7 +77,7 @@ HAL_Return_Code HAL_AES_Encrypt(const uint8_t *p_pucData, uint8_t *p_pucResult)
  * @param[out] p_pucResult - not written
  * @return     HAL_ERROR__NOT_SUPPORTED
  **************************************************************************************************/
-HAL_Return_Code HAL_AES_Decrypt(const uint8_t *p_pucData, uint8_t *p_pucResult)
+HAL_RETURN_CODE_T HAL_AES_Decrypt(const uint8_t *p_pucData, uint8_t *p_pucResult)
 {
 	(void) p_pucData;
 	(void) p_pucResult;

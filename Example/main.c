@@ -22,7 +22,7 @@ static volatile uint8_t g_ucAPP_UartErrors;
  * @brief     Reports a fatal error: the LED blinks the error code, forever
  * @param[in] p_eCode - the return code that stopped the application
  **************************************************************************************************/
-static void APP_Fail(HAL_Return_Code p_eCode)
+static void APP_Fail(HAL_RETURN_CODE_T p_eCode)
 {
 	uint8_t l_ucIndex;
 
@@ -121,11 +121,11 @@ static void APP_ErrorCallback(void *p_pvContext, uint8_t p_ucErrors)
  * @brief   Starts the clock: the external clock first, the internal oscillator when it is missing
  * @return  HAL_SUCCESS when the system runs at 32 MHz
  **************************************************************************************************/
-static HAL_Return_Code APP_ClockInit(void)
+static HAL_RETURN_CODE_T APP_ClockInit(void)
 {
-	static const HAL_CLOCK_Flags l_stExternal = BOARD_CLOCK_FLAGS;
-	static const HAL_CLOCK_Flags l_stInternal = BOARD_CLOCK_FLAGS__INTERNAL;
-	HAL_Return_Code l_eReturnCode = HAL_CLOCK_Init(&l_stExternal);
+	static const HAL_CLOCK_FLAGS_T l_stExternal = BOARD_CLOCK_FLAGS;
+	static const HAL_CLOCK_FLAGS_T l_stInternal = BOARD_CLOCK_FLAGS__INTERNAL;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_CLOCK_Init(&l_stExternal);
 
 	if ((l_eReturnCode == HAL_ERROR__TIMEOUT) && (HAL_CLOCK_Get() != 32000000UL))
 	{
@@ -149,18 +149,18 @@ static HAL_Return_Code APP_ClockInit(void)
  * @brief   Configures the LED and the button
  * @return  HAL_SUCCESS or the first error
  **************************************************************************************************/
-static HAL_Return_Code APP_GpioInit(void)
+static HAL_RETURN_CODE_T APP_GpioInit(void)
 {
-	static const HAL_GPIO_Flags l_stLed = { .m_ucMode = HAL_GPIO_MODE__OUTPUT };
-	static const HAL_GPIO_Flags l_stButton = { .m_ucMode = HAL_GPIO_MODE__INPUT };
-	static const HAL_GPIO_InterruptFlags l_stInterrupt =
+	static const HAL_GPIO_FLAGS_T l_stLed = { .m_ucMode = HAL_GPIO_MODE__OUTPUT };
+	static const HAL_GPIO_FLAGS_T l_stButton = { .m_ucMode = HAL_GPIO_MODE__INPUT };
+	static const HAL_GPIO_INTERRUPT_FLAGS_T l_stInterrupt =
 	{
 		.m_ucEdge = HAL_GPIO_FALLING,
 		.m_stInterrupt = { .m_ucPrePriority = 15 },
 		.m_pfCallback = APP_ButtonCallback,
 		.m_pvContext = (void *) &g_ulAPP_ButtonCount
 	};
-	HAL_Return_Code l_eReturnCode = HAL_GPIO_Config(BOARD_LED_MODULE, BOARD_LED_PIN, &l_stLed);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_GPIO_Config(BOARD_LED_MODULE, BOARD_LED_PIN, &l_stLed);
 
 	if (l_eReturnCode == HAL_SUCCESS)
 	{
@@ -184,9 +184,9 @@ static HAL_Return_Code APP_GpioInit(void)
  * @brief   Configures the virtual COM port: 115200 baud, 8 data bits, no parity, 1 stop bit
  * @return  HAL_SUCCESS or the first error
  **************************************************************************************************/
-static HAL_Return_Code APP_UartInit(void)
+static HAL_RETURN_CODE_T APP_UartInit(void)
 {
-	static const HAL_UART_Flags l_stFlags =
+	static const HAL_UART_FLAGS_T l_stFlags =
 	{
 		.m_ulBaud = 115200,
 		.m_ucDataBits = HAL_UART_DATABITS__8,
@@ -199,7 +199,7 @@ static HAL_Return_Code APP_UartInit(void)
 		.m_pfTxCallback = APP_TxCallback,
 		.m_pfErrorCallback = APP_ErrorCallback
 	};
-	HAL_Return_Code l_eReturnCode = HAL_UART_Config(BOARD_VCP_UART, &l_stFlags);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_UART_Config(BOARD_VCP_UART, &l_stFlags);
 
 	if (l_eReturnCode == HAL_SUCCESS)
 	{
@@ -223,11 +223,11 @@ static HAL_Return_Code APP_UartInit(void)
  * @brief   Configures a timer that calls back once per second
  * @return  HAL_SUCCESS or the first error
  **************************************************************************************************/
-static HAL_Return_Code APP_TimerInit(void)
+static HAL_RETURN_CODE_T APP_TimerInit(void)
 {
-	HAL_TIMER_Flags l_stFlags = { .m_ulUpdate = 9999, .m_stInterrupt = { .m_ucPrePriority = 10 }, .m_pfUpdateCallback = APP_SecondCallback };
+	HAL_TIMER_FLAGS_T l_stFlags = { .m_ulUpdate = 9999, .m_stInterrupt = { .m_ucPrePriority = 10 }, .m_pfUpdateCallback = APP_SecondCallback };
 	uint32_t l_ulClock = 0;
-	HAL_Return_Code l_eReturnCode = HAL_TIMER_GetClock(HAL_TIMER_0, &l_ulClock);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_TIMER_GetClock(HAL_TIMER_0, &l_ulClock);
 
 	if (l_eReturnCode == HAL_SUCCESS)
 	{
@@ -256,8 +256,8 @@ static HAL_Return_Code APP_TimerInit(void)
  **************************************************************************************************/
 int main(void)
 {
-	static const HAL_LPM_Flags l_stSleep = { .m_ucKeepTick = HAL_ENABLE };
-	HAL_Return_Code l_eReturnCode = APP_ClockInit();
+	static const HAL_LPM_FLAGS_T l_stSleep = { .m_ucKeepTick = HAL_ENABLE };
+	HAL_RETURN_CODE_T l_eReturnCode = APP_ClockInit();
 
 	/* The LED is configured even after a clock error, so the error can be shown. */
 	if (APP_GpioInit() != HAL_SUCCESS)

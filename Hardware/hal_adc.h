@@ -46,27 +46,27 @@ enum HAL_ADC_SampleTime
 #endif
 
 /* Runs in interrupt context. */
-typedef void (*HAL_ADC_CALLBACK) (void *p_pvContext, uint16_t p_unValue);
+typedef void (*HAL_ADC_CALLBACK_T) (void *p_pvContext, uint16_t p_unValue);
 
 typedef struct
 {
 	uint8_t m_ucResolution : 2;           // e.g. HAL_ADC_RESOLUTION__12_BITS
 	uint8_t m_ucAlign : 1;                // e.g. HAL_ADC_ALIGN__RIGHT
-	HAL_Interrupt m_stInterrupt;          // Priority of the ADC interrupt
-	HAL_ADC_CALLBACK m_pfConversionCallback; // NULL - conversions are read with HAL_ADC_ReadChannelRaw only
+	HAL_INTERRUPT_T m_stInterrupt;          // Priority of the ADC interrupt
+	HAL_ADC_CALLBACK_T m_pfConversionCallback; // NULL - conversions are read with HAL_ADC_ReadChannelRaw only
 	void *m_pvContext;                    // Given back to the callback
-}HAL_ADC_Flags;
+}HAL_ADC_FLAGS_T;
 
 typedef struct
 {
 	uint8_t m_ucSampleTime;               // e.g. HAL_ADC_SAMPLE_TIME__48
-	HAL_GPIO_Pin m_stPin;                 // The analog input pin; module HAL_GPIO_NONE for an internal channel
-}HAL_ADC_ChannelFlags;
+	HAL_GPIO_PIN_T m_stPin;                 // The analog input pin; module HAL_GPIO_NONE for an internal channel
+}HAL_ADC_CHANNEL_FLAGS_T;
 
-HAL_Return_Code HAL_ADC_Config(uint8_t p_ucModule, const HAL_ADC_Flags *p_pstFlags);
-HAL_Return_Code HAL_ADC_ConfigChannel(uint8_t p_ucModule, uint8_t p_ucChannel, const HAL_ADC_ChannelFlags *p_pstFlags);
-HAL_Return_Code HAL_ADC_SetState(uint8_t p_ucModule, uint8_t p_ucState);
-HAL_Return_Code HAL_ADC_ReadChannelRaw(uint8_t p_ucModule, uint8_t p_ucChannel, uint16_t *p_punValue);
-HAL_Return_Code HAL_ADC_StartConversion(uint8_t p_ucModule, uint8_t p_ucChannel);
+HAL_RETURN_CODE_T HAL_ADC_Config(uint8_t p_ucModule, const HAL_ADC_FLAGS_T *p_pstFlags);
+HAL_RETURN_CODE_T HAL_ADC_ConfigChannel(uint8_t p_ucModule, uint8_t p_ucChannel, const HAL_ADC_CHANNEL_FLAGS_T *p_pstFlags);
+HAL_RETURN_CODE_T HAL_ADC_SetState(uint8_t p_ucModule, uint8_t p_ucState);
+HAL_RETURN_CODE_T HAL_ADC_ReadChannelRaw(uint8_t p_ucModule, uint8_t p_ucChannel, uint16_t *p_punValue);
+HAL_RETURN_CODE_T HAL_ADC_StartConversion(uint8_t p_ucModule, uint8_t p_ucChannel);
 
 #endif /* HAL_ADC_H_ */

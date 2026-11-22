@@ -66,9 +66,9 @@ enum HAL_SPI_TxAction
 #endif
 
 /* The callbacks run in interrupt context. They are meant for the slave mode. */
-typedef void (*HAL_SPI_RX_CALLBACK) (void *p_pvContext, uint8_t p_ucByte);
-typedef uint8_t (*HAL_SPI_TX_CALLBACK) (void *p_pvContext, uint8_t *p_pucByte);
-typedef void (*HAL_SPI_ERROR_CALLBACK) (void *p_pvContext, uint8_t p_ucErrors);
+typedef void (*HAL_SPI_RX_CALLBACK_T) (void *p_pvContext, uint8_t p_ucByte);
+typedef uint8_t (*HAL_SPI_TX_CALLBACK_T) (void *p_pvContext, uint8_t *p_pucByte);
+typedef void (*HAL_SPI_ERROR_CALLBACK_T) (void *p_pvContext, uint8_t p_ucErrors);
 
 typedef struct
 {
@@ -77,24 +77,24 @@ typedef struct
 	uint8_t m_ucPhase : 1;             // e.g. HAL_SPI_PHASE__FIRST_EDGE
 	uint8_t m_ucBitOrder : 1;          // e.g. HAL_SPI_BIT_ORDER__MSB_FIRST
 	uint32_t m_ulSpeed;                // Master: the highest acceptable clock in Hz (e.g. 8000000)
-	HAL_GPIO_Pin m_stClkPin;
-	HAL_GPIO_Pin m_stMisoPin;          // Module HAL_GPIO_NONE when not used
-	HAL_GPIO_Pin m_stMosiPin;          // Module HAL_GPIO_NONE when not used
-	HAL_GPIO_Pin m_stSsPin;            // Slave only: hardware select input; HAL_GPIO_NONE - always selected
-	HAL_Interrupt m_stInterrupt;       // Priority of the SPI interrupt
-	HAL_SPI_RX_CALLBACK m_pfRxCallback;        // NULL - not used
-	HAL_SPI_TX_CALLBACK m_pfTxCallback;        // NULL - not used
-	HAL_SPI_ERROR_CALLBACK m_pfErrorCallback;  // NULL - errors are dropped
+	HAL_GPIO_PIN_T m_stClkPin;
+	HAL_GPIO_PIN_T m_stMisoPin;          // Module HAL_GPIO_NONE when not used
+	HAL_GPIO_PIN_T m_stMosiPin;          // Module HAL_GPIO_NONE when not used
+	HAL_GPIO_PIN_T m_stSsPin;            // Slave only: hardware select input; HAL_GPIO_NONE - always selected
+	HAL_INTERRUPT_T m_stInterrupt;       // Priority of the SPI interrupt
+	HAL_SPI_RX_CALLBACK_T m_pfRxCallback;        // NULL - not used
+	HAL_SPI_TX_CALLBACK_T m_pfTxCallback;        // NULL - not used
+	HAL_SPI_ERROR_CALLBACK_T m_pfErrorCallback;  // NULL - errors are dropped
 	void *m_pvContext;                 // Given back to the callbacks
-}HAL_SPI_Flags;
+}HAL_SPI_FLAGS_T;
 
-HAL_Return_Code HAL_SPI_Config(uint8_t p_ucModule, const HAL_SPI_Flags *p_pstFlags);
-HAL_Return_Code HAL_SPI_SetState(uint8_t p_ucModule, uint8_t p_ucState);
-HAL_Return_Code HAL_SPI_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucInterrupt, uint8_t p_ucState);
-HAL_Return_Code HAL_SPI_GetSpeed(uint8_t p_ucModule, uint32_t *p_pulSpeed);
-HAL_Return_Code HAL_SPI_TransferByte(uint8_t p_ucModule, uint8_t p_ucByte, uint8_t *p_pucByte);
-HAL_Return_Code HAL_SPI_Transfer(uint8_t p_ucModule, const uint8_t *p_pucTxBuff, uint8_t *p_pucRxBuff, uint16_t p_unSize);
-HAL_Return_Code HAL_SPI_WriteBuff(uint8_t p_ucModule, const uint8_t *p_pucBuff, uint16_t p_unSize);
-HAL_Return_Code HAL_SPI_ReadBuff(uint8_t p_ucModule, uint8_t *p_pucBuff, uint16_t p_unSize);
+HAL_RETURN_CODE_T HAL_SPI_Config(uint8_t p_ucModule, const HAL_SPI_FLAGS_T *p_pstFlags);
+HAL_RETURN_CODE_T HAL_SPI_SetState(uint8_t p_ucModule, uint8_t p_ucState);
+HAL_RETURN_CODE_T HAL_SPI_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucInterrupt, uint8_t p_ucState);
+HAL_RETURN_CODE_T HAL_SPI_GetSpeed(uint8_t p_ucModule, uint32_t *p_pulSpeed);
+HAL_RETURN_CODE_T HAL_SPI_TransferByte(uint8_t p_ucModule, uint8_t p_ucByte, uint8_t *p_pucByte);
+HAL_RETURN_CODE_T HAL_SPI_Transfer(uint8_t p_ucModule, const uint8_t *p_pucTxBuff, uint8_t *p_pucRxBuff, uint16_t p_unSize);
+HAL_RETURN_CODE_T HAL_SPI_WriteBuff(uint8_t p_ucModule, const uint8_t *p_pucBuff, uint16_t p_unSize);
+HAL_RETURN_CODE_T HAL_SPI_ReadBuff(uint8_t p_ucModule, uint8_t *p_pucBuff, uint16_t p_unSize);
 
 #endif /* HAL_SPI_H_ */

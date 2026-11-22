@@ -27,7 +27,7 @@ enum HAL_LPM_Mode
 #define HAL_LPM_WAKEUP_PIN__3 ((uint8_t) 0x04)
 
 /* Runs in the context of the caller of HAL_LPM_Enter. */
-typedef void (*HAL_LPM_CALLBACK) (void *p_pvContext);
+typedef void (*HAL_LPM_CALLBACK_T) (void *p_pvContext);
 
 typedef struct
 {
@@ -35,13 +35,13 @@ typedef struct
 	uint8_t m_ucUltraLowPower : 1;     // Stop and standby: HAL_ENABLE switches the internal reference off
 	uint8_t m_ucFastWakeUp : 1;        // With ultra low power: HAL_ENABLE does not wait for the reference at wake-up
 	uint8_t m_ucWakeUpPins : 3;        // Standby: the wake-up pins to enable (e.g. HAL_LPM_WAKEUP_PIN__1)
-	HAL_LPM_CALLBACK m_pfEnterCallback; // NULL - not used; called before the mode is entered
-	HAL_LPM_CALLBACK m_pfExitCallback;  // NULL - not used; called after wake-up, with the clock restored
+	HAL_LPM_CALLBACK_T m_pfEnterCallback; // NULL - not used; called before the mode is entered
+	HAL_LPM_CALLBACK_T m_pfExitCallback;  // NULL - not used; called after wake-up, with the clock restored
 	void *m_pvContext;                 // Given back to the callbacks
-}HAL_LPM_Flags;
+}HAL_LPM_FLAGS_T;
 
-HAL_Return_Code HAL_LPM_Enter(uint8_t p_ucMode, const HAL_LPM_Flags *p_pstFlags);
-HAL_Return_Code HAL_LPM_Exit(uint8_t p_ucMode);
+HAL_RETURN_CODE_T HAL_LPM_Enter(uint8_t p_ucMode, const HAL_LPM_FLAGS_T *p_pstFlags);
+HAL_RETURN_CODE_T HAL_LPM_Exit(uint8_t p_ucMode);
 bool HAL_LPM_WasInStandby(void);
 
 #endif /* HAL_LPM_H_ */

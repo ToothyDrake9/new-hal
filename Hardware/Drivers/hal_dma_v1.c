@@ -12,14 +12,14 @@
 
 typedef struct
 {
-	HAL_DMA_CALLBACK m_pfCompleteCallback;
-	HAL_DMA_CALLBACK m_pfHalfCallback;
-	HAL_DMA_CALLBACK m_pfErrorCallback;
+	HAL_DMA_CALLBACK_T m_pfCompleteCallback;
+	HAL_DMA_CALLBACK_T m_pfHalfCallback;
+	HAL_DMA_CALLBACK_T m_pfErrorCallback;
 	void *m_pvContext;
 	uint8_t m_ucConfigured;
-}HAL_DMA_Channel_State;
+}HAL_DMA_CHANNEL_STATE_T;
 
-static HAL_DMA_Channel_State g_astHAL_DMA_State[HAL_DMA_NO][HAL_DMA_CHANNEL_NO];
+static HAL_DMA_CHANNEL_STATE_T g_astHAL_DMA_State[HAL_DMA_NO][HAL_DMA_CHANNEL_NO];
 
 /**************************************************************************************************
  * @brief     Gets the registers of a channel
@@ -39,9 +39,9 @@ static DMA_Channel_TypeDef *HAL_DMA_GetChannel(uint8_t p_ucModule, uint8_t p_ucC
  * @param[in] p_bConfigured - true when the channel must have been configured
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  **************************************************************************************************/
-static HAL_Return_Code HAL_DMA_Check(uint8_t p_ucModule, uint8_t p_ucChannel, bool p_bConfigured)
+static HAL_RETURN_CODE_T HAL_DMA_Check(uint8_t p_ucModule, uint8_t p_ucChannel, bool p_bConfigured)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
 
 	if ((p_ucModule >= HAL_DMA_NO) || (p_ucChannel >= g_astHAL_DMA_Device[p_ucModule].m_ucChannels))
 	{
@@ -68,12 +68,12 @@ static HAL_Return_Code HAL_DMA_Check(uint8_t p_ucModule, uint8_t p_ucChannel, bo
  * @remarks   The channel is left stopped. The peripheral that makes the requests must be told to
  *            use DMA with its own registers.
  **************************************************************************************************/
-HAL_Return_Code HAL_DMA_Config(uint8_t p_ucModule, uint8_t p_ucChannel, const HAL_DMA_Flags *p_pstFlags)
+HAL_RETURN_CODE_T HAL_DMA_Config(uint8_t p_ucModule, uint8_t p_ucChannel, const HAL_DMA_FLAGS_T *p_pstFlags)
 {
-	HAL_Return_Code l_eReturnCode = HAL_DMA_Check(p_ucModule, p_ucChannel, false);
-	HAL_DMA_Channel_State *l_pstState;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_DMA_Check(p_ucModule, p_ucChannel, false);
+	HAL_DMA_CHANNEL_STATE_T *l_pstState;
 	DMA_Channel_TypeDef *l_pstChannel;
-	const HAL_DMA_Device *l_pstDevice = NULL;
+	const HAL_DMA_DEVICE_T *l_pstDevice = NULL;
 	uint32_t l_ulControl = 0;
 
 	if ((l_eReturnCode == HAL_SUCCESS) && ((p_pstFlags == NULL) || (p_pstFlags->m_ucPeripheralSize > HAL_DMA_SIZE__32) || (p_pstFlags->m_ucMemorySize > HAL_DMA_SIZE__32)))
@@ -154,9 +154,9 @@ HAL_Return_Code HAL_DMA_Config(uint8_t p_ucModule, uint8_t p_ucChannel, const HA
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  * @remarks   A transfer that is running is stopped first.
  **************************************************************************************************/
-HAL_Return_Code HAL_DMA_Start(uint8_t p_ucModule, uint8_t p_ucChannel, uint32_t p_ulPeripheralAddress, uint32_t p_ulMemoryAddress, uint16_t p_unCount)
+HAL_RETURN_CODE_T HAL_DMA_Start(uint8_t p_ucModule, uint8_t p_ucChannel, uint32_t p_ulPeripheralAddress, uint32_t p_ulMemoryAddress, uint16_t p_unCount)
 {
-	HAL_Return_Code l_eReturnCode = HAL_DMA_Check(p_ucModule, p_ucChannel, true);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_DMA_Check(p_ucModule, p_ucChannel, true);
 	DMA_Channel_TypeDef *l_pstChannel;
 
 	if ((l_eReturnCode == HAL_SUCCESS) && (p_unCount == 0U))
@@ -189,9 +189,9 @@ HAL_Return_Code HAL_DMA_Start(uint8_t p_ucModule, uint8_t p_ucChannel, uint32_t 
  * @param[in] p_ucChannel - the DMA channel (e.g. HAL_DMA_CHANNEL_0)
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  **************************************************************************************************/
-HAL_Return_Code HAL_DMA_Stop(uint8_t p_ucModule, uint8_t p_ucChannel)
+HAL_RETURN_CODE_T HAL_DMA_Stop(uint8_t p_ucModule, uint8_t p_ucChannel)
 {
-	HAL_Return_Code l_eReturnCode = HAL_DMA_Check(p_ucModule, p_ucChannel, true);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_DMA_Check(p_ucModule, p_ucChannel, true);
 
 	if (l_eReturnCode == HAL_SUCCESS)
 	{
@@ -212,9 +212,9 @@ HAL_Return_Code HAL_DMA_Stop(uint8_t p_ucModule, uint8_t p_ucChannel)
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER, or HAL_ERROR__NOT_CONFIGURED when the channel was
  *            not configured or no callback was given for this interrupt
  **************************************************************************************************/
-HAL_Return_Code HAL_DMA_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucChannel, uint8_t p_ucInterrupt, uint8_t p_ucState)
+HAL_RETURN_CODE_T HAL_DMA_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucChannel, uint8_t p_ucInterrupt, uint8_t p_ucState)
 {
-	HAL_Return_Code l_eReturnCode = HAL_DMA_Check(p_ucModule, p_ucChannel, true);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_DMA_Check(p_ucModule, p_ucChannel, true);
 	uint32_t l_ulMask = 0;
 
 	if (l_eReturnCode == HAL_SUCCESS)
@@ -265,9 +265,9 @@ HAL_Return_Code HAL_DMA_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucChannel, ui
  * @param[out] p_punCount - the number of items still to transfer
  * @return     HAL_SUCCESS, HAL_ERROR__PARAMETER or HAL_ERROR__NOT_CONFIGURED
  **************************************************************************************************/
-HAL_Return_Code HAL_DMA_GetRemaining(uint8_t p_ucModule, uint8_t p_ucChannel, uint16_t *p_punCount)
+HAL_RETURN_CODE_T HAL_DMA_GetRemaining(uint8_t p_ucModule, uint8_t p_ucChannel, uint16_t *p_punCount)
 {
-	HAL_Return_Code l_eReturnCode = HAL_DMA_Check(p_ucModule, p_ucChannel, true);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_DMA_Check(p_ucModule, p_ucChannel, true);
 
 	if ((l_eReturnCode == HAL_SUCCESS) && (p_punCount == NULL))
 	{
@@ -289,7 +289,7 @@ HAL_Return_Code HAL_DMA_GetRemaining(uint8_t p_ucModule, uint8_t p_ucChannel, ui
  **************************************************************************************************/
 static void HAL_DMA_Interrupt(uint8_t p_ucModule, uint8_t p_ucChannel)
 {
-	const HAL_DMA_Channel_State *l_pstState = &g_astHAL_DMA_State[p_ucModule][p_ucChannel];
+	const HAL_DMA_CHANNEL_STATE_T *l_pstState = &g_astHAL_DMA_State[p_ucModule][p_ucChannel];
 	DMA_TypeDef *l_pstDma = g_astHAL_DMA_Device[p_ucModule].m_pstRegisters;
 	uint32_t l_ulControl = HAL_DMA_GetChannel(p_ucModule, p_ucChannel)->CCR;
 	uint32_t l_ulShift = 4UL * p_ucChannel;

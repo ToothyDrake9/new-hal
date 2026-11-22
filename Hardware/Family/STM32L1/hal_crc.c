@@ -21,9 +21,9 @@ static uint8_t g_ucHAL_CRC_Configured;
  * @return    HAL_SUCCESS, or HAL_ERROR__NOT_SUPPORTED when another polynomial, size or initial
  *            value is asked for
  **************************************************************************************************/
-HAL_Return_Code HAL_CRC_Config(const HAL_CRC_Flags *p_pstFlags)
+HAL_RETURN_CODE_T HAL_CRC_Config(const HAL_CRC_FLAGS_T *p_pstFlags)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
 
 	if ((p_pstFlags != NULL) && ((p_pstFlags->m_ulPolynomial != HAL_CRC_POLYNOMIAL__CRC32) || (p_pstFlags->m_ulInitialValue != 0xFFFFFFFFUL) || (p_pstFlags->m_ucSize != 32U)))
 	{
@@ -49,9 +49,9 @@ HAL_Return_Code HAL_CRC_Config(const HAL_CRC_Flags *p_pstFlags)
  * @remarks    The unit keeps a running value: do not call from an interrupt handler while the
  *             main code may be inside this function.
  **************************************************************************************************/
-HAL_Return_Code HAL_CRC_Calculate(const uint8_t *p_pucData, uint16_t p_unSize, uint32_t *p_pulCrc)
+HAL_RETURN_CODE_T HAL_CRC_Calculate(const uint8_t *p_pucData, uint16_t p_unSize, uint32_t *p_pulCrc)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
 	uint16_t l_unIndex = 0;
 
 	if ((p_pulCrc == NULL) || ((p_pucData == NULL) && (p_unSize != 0U)))

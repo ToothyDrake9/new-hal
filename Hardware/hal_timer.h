@@ -46,7 +46,7 @@ enum HAL_TIMER_Output
 };
 
 /* Runs in interrupt context. */
-typedef void (*HAL_TIMER_CALLBACK) (void *p_pvContext);
+typedef void (*HAL_TIMER_CALLBACK_T) (void *p_pvContext);
 
 typedef struct
 {
@@ -55,27 +55,27 @@ typedef struct
 	uint8_t m_ucOnePulse : 1;            // HAL_ENABLE - the counter stops at the update event
 	uint16_t m_unPrescaler;              // The clock is divided by this value plus 1
 	uint32_t m_ulUpdate;                 // Auto-reload value: the period is this value plus 1
-	HAL_Interrupt m_stInterrupt;         // Priority of the timer interrupt
-	HAL_TIMER_CALLBACK m_pfUpdateCallback;       // NULL - not used
-	HAL_TIMER_CALLBACK m_apfCompareCallback[4];  // NULL - not used; index 0 is HAL_TIMER_COMPARE1
+	HAL_INTERRUPT_T m_stInterrupt;         // Priority of the timer interrupt
+	HAL_TIMER_CALLBACK_T m_pfUpdateCallback;       // NULL - not used
+	HAL_TIMER_CALLBACK_T m_apfCompareCallback[4];  // NULL - not used; index 0 is HAL_TIMER_COMPARE1
 	void *m_pvContext;                   // Given back to the callbacks
-}HAL_TIMER_Flags;
+}HAL_TIMER_FLAGS_T;
 
 typedef struct
 {
 	uint8_t m_ucOutput;                  // e.g. HAL_TIMER_OUTPUT__NONE
 	uint32_t m_ulCompare;                // Compare value; 0 is valid
-	HAL_GPIO_Pin m_stPin;                // Output pin; module HAL_GPIO_NONE when there is none
-}HAL_TIMER_ChannelFlags;
+	HAL_GPIO_PIN_T m_stPin;                // Output pin; module HAL_GPIO_NONE when there is none
+}HAL_TIMER_CHANNEL_FLAGS_T;
 
-HAL_Return_Code HAL_TIMER_Config(uint8_t p_ucModule, const HAL_TIMER_Flags *p_pstFlags);
-HAL_Return_Code HAL_TIMER_ConfigChannel(uint8_t p_ucModule, uint8_t p_ucCompare, const HAL_TIMER_ChannelFlags *p_pstFlags);
-HAL_Return_Code HAL_TIMER_SetState(uint8_t p_ucModule, uint8_t p_ucState);
-HAL_Return_Code HAL_TIMER_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucInterrupt, uint8_t p_ucState);
-HAL_Return_Code HAL_TIMER_SetCounter(uint8_t p_ucModule, uint32_t p_ulCounter);
-HAL_Return_Code HAL_TIMER_SetCompare(uint8_t p_ucModule, uint8_t p_ucCompare, uint32_t p_ulValue);
-HAL_Return_Code HAL_TIMER_GetCompare(uint8_t p_ucModule, uint8_t p_ucCompare, uint32_t *p_pulValue);
-HAL_Return_Code HAL_TIMER_GetClock(uint8_t p_ucModule, uint32_t *p_pulClock);
+HAL_RETURN_CODE_T HAL_TIMER_Config(uint8_t p_ucModule, const HAL_TIMER_FLAGS_T *p_pstFlags);
+HAL_RETURN_CODE_T HAL_TIMER_ConfigChannel(uint8_t p_ucModule, uint8_t p_ucCompare, const HAL_TIMER_CHANNEL_FLAGS_T *p_pstFlags);
+HAL_RETURN_CODE_T HAL_TIMER_SetState(uint8_t p_ucModule, uint8_t p_ucState);
+HAL_RETURN_CODE_T HAL_TIMER_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucInterrupt, uint8_t p_ucState);
+HAL_RETURN_CODE_T HAL_TIMER_SetCounter(uint8_t p_ucModule, uint32_t p_ulCounter);
+HAL_RETURN_CODE_T HAL_TIMER_SetCompare(uint8_t p_ucModule, uint8_t p_ucCompare, uint32_t p_ulValue);
+HAL_RETURN_CODE_T HAL_TIMER_GetCompare(uint8_t p_ucModule, uint8_t p_ucCompare, uint32_t *p_pulValue);
+HAL_RETURN_CODE_T HAL_TIMER_GetClock(uint8_t p_ucModule, uint32_t *p_pulClock);
 uint32_t HAL_TIMER_GetCounter(uint8_t p_ucModule);
 
 #endif /* HAL_TIMER_H_ */

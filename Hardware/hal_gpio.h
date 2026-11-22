@@ -107,7 +107,7 @@ typedef struct
 	uint8_t m_ucPull : 2;
 	uint8_t m_ucSpeed : 2;
 	uint8_t m_ucFunction : 4;
-}HAL_GPIO_Flags;
+}HAL_GPIO_FLAGS_T;
 
 /* A pin handed to another module (UART, SPI, ...): where it is and which function selects it. */
 typedef struct
@@ -115,24 +115,24 @@ typedef struct
 	uint8_t m_ucModule;   // e.g. HAL_GPIO_0, or HAL_GPIO_NONE when the pin is not used
 	uint8_t m_ucPin;      // e.g. HAL_GPIO_PIN_2
 	uint8_t m_ucFunction; // e.g. HAL_GPIO_FUNCTION__7
-}HAL_GPIO_Pin;
+}HAL_GPIO_PIN_T;
 
 /* Runs in interrupt context. */
-typedef void (*HAL_GPIO_CALLBACK) (void *p_pvContext);
+typedef void (*HAL_GPIO_CALLBACK_T) (void *p_pvContext);
 
 typedef struct
 {
 	uint8_t m_ucEdge;                // e.g. HAL_GPIO_FALLING
-	HAL_Interrupt m_stInterrupt;     // Priority of the EXTI line, shared by pins 5-9 and by pins 10-15
-	HAL_GPIO_CALLBACK m_pfCallback;  // Must not be NULL
+	HAL_INTERRUPT_T m_stInterrupt;     // Priority of the EXTI line, shared by pins 5-9 and by pins 10-15
+	HAL_GPIO_CALLBACK_T m_pfCallback;  // Must not be NULL
 	void *m_pvContext;               // Given back to the callback
-}HAL_GPIO_InterruptFlags;
+}HAL_GPIO_INTERRUPT_FLAGS_T;
 
-HAL_Return_Code HAL_GPIO_Config(uint8_t p_ucModule, uint8_t p_ucPin, const HAL_GPIO_Flags *p_pstFlags);
-HAL_Return_Code HAL_GPIO_ConfigPin(const HAL_GPIO_Pin *p_pstPin, const HAL_GPIO_Flags *p_pstFlags);
-HAL_Return_Code HAL_GPIO_ConfigInterrupt(uint8_t p_ucModule, uint8_t p_ucPin, const HAL_GPIO_InterruptFlags *p_pstFlags);
-HAL_Return_Code HAL_GPIO_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucPin, uint8_t p_ucState);
-HAL_Return_Code HAL_GPIO_ReleaseInterrupt(uint8_t p_ucModule, uint8_t p_ucPin);
+HAL_RETURN_CODE_T HAL_GPIO_Config(uint8_t p_ucModule, uint8_t p_ucPin, const HAL_GPIO_FLAGS_T *p_pstFlags);
+HAL_RETURN_CODE_T HAL_GPIO_ConfigPin(const HAL_GPIO_PIN_T *p_pstPin, const HAL_GPIO_FLAGS_T *p_pstFlags);
+HAL_RETURN_CODE_T HAL_GPIO_ConfigInterrupt(uint8_t p_ucModule, uint8_t p_ucPin, const HAL_GPIO_INTERRUPT_FLAGS_T *p_pstFlags);
+HAL_RETURN_CODE_T HAL_GPIO_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucPin, uint8_t p_ucState);
+HAL_RETURN_CODE_T HAL_GPIO_ReleaseInterrupt(uint8_t p_ucModule, uint8_t p_ucPin);
 
 /*
  * Pin access. These are inline so that a call with constant arguments becomes a single store.
@@ -145,9 +145,9 @@ static const uint32_t g_aulHAL_GPIO_Address[HAL_GPIO_NO] = HAL_GPIO_ADDRESS_TABL
  * @param[in] p_ucModule - the GPIO module (e.g. HAL_GPIO_0)
  * @return    The register block
  **************************************************************************************************/
-static inline HAL_GPIO_Registers *HAL_GPIO_GetRegisters(uint8_t p_ucModule)
+static inline HAL_GPIO_REGISTERS_T *HAL_GPIO_GetRegisters(uint8_t p_ucModule)
 {
-	return (HAL_GPIO_Registers *) g_aulHAL_GPIO_Address[p_ucModule];
+	return (HAL_GPIO_REGISTERS_T *) g_aulHAL_GPIO_Address[p_ucModule];
 }
 
 /**************************************************************************************************
@@ -171,7 +171,7 @@ static inline uint8_t HAL_GPIO_Read(uint8_t p_ucModule, uint8_t p_ucPin)
  **************************************************************************************************/
 static inline void HAL_GPIO_Write(uint8_t p_ucModule, uint8_t p_ucPin, uint8_t p_ucState)
 {
-	HAL_GPIO_Registers *l_pstPort = HAL_GPIO_GetRegisters(p_ucModule);
+	HAL_GPIO_REGISTERS_T *l_pstPort = HAL_GPIO_GetRegisters(p_ucModule);
 	uint32_t l_ulSet = 1UL << p_ucPin;
 	uint32_t l_ulReset = 1UL << (p_ucPin + 16U);
 

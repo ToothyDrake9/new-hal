@@ -26,7 +26,7 @@ static const uint8_t g_aucHAL_CLOCK_AhbShift[] = { 0, 1, 2, 3, 4, 6, 7, 8, 9 };
 /* CMSIS variable: the core clock (HCLK) in Hz. */
 uint32_t SystemCoreClock = 2097152UL;
 
-static HAL_CLOCK_Flags g_stHAL_CLOCK_Flags;
+static HAL_CLOCK_FLAGS_T g_stHAL_CLOCK_Flags;
 static uint32_t g_ulHAL_CLOCK_HseFrequency;
 static uint32_t g_ulHAL_CLOCK_TicksPerMs = 1;
 static volatile uint32_t g_ulHAL_CLOCK_Tick;
@@ -41,10 +41,10 @@ static uint8_t g_ucHAL_CLOCK_TickState;
  * @param[in] p_ulMilliseconds - the longest wait
  * @return    HAL_SUCCESS or HAL_ERROR__TIMEOUT
  **************************************************************************************************/
-static HAL_Return_Code HAL_CLOCK_Wait(const volatile uint32_t *p_pulRegister, uint32_t p_ulMask, uint32_t p_ulValue, uint32_t p_ulMilliseconds)
+static HAL_RETURN_CODE_T HAL_CLOCK_Wait(const volatile uint32_t *p_pulRegister, uint32_t p_ulMask, uint32_t p_ulValue, uint32_t p_ulMilliseconds)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
-	HAL_CLOCK_Timeout l_stTimeout;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
+	HAL_CLOCK_TIMEOUT_T l_stTimeout;
 
 	HAL_CLOCK_TimeoutStart(&l_stTimeout, p_ulMilliseconds);
 
@@ -103,9 +103,9 @@ static bool HAL_CLOCK_IsHsiUsed(void)
  * @param[out] p_pulCoreClock - the core clock (HCLK) that the configuration produces, in Hz
  * @return     HAL_SUCCESS or HAL_ERROR__PARAMETER
  **************************************************************************************************/
-static HAL_Return_Code HAL_CLOCK_Validate(const HAL_CLOCK_Flags *p_pstFlags, uint32_t *p_pulCoreClock)
+static HAL_RETURN_CODE_T HAL_CLOCK_Validate(const HAL_CLOCK_FLAGS_T *p_pstFlags, uint32_t *p_pulCoreClock)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
 	uint32_t l_ulSystemClock = 0;
 	uint32_t l_ulInput = 0;
 	bool l_bHseUsed = false;
@@ -226,9 +226,9 @@ static HAL_Return_Code HAL_CLOCK_Validate(const HAL_CLOCK_Flags *p_pstFlags, uin
  * @remarks From this state the voltage range, the flash latency and the other oscillators can be
  *          changed in any order.
  **************************************************************************************************/
-static HAL_Return_Code HAL_CLOCK_EnterTransit(void)
+static HAL_RETURN_CODE_T HAL_CLOCK_EnterTransit(void)
 {
-	HAL_Return_Code l_eReturnCode;
+	HAL_RETURN_CODE_T l_eReturnCode;
 
 	/* Enable the MSI. Its range may only be changed while it is off or ready. */
 	RCC->CR |= RCC_CR_MSION;
@@ -270,9 +270,9 @@ static HAL_Return_Code HAL_CLOCK_EnterTransit(void)
  * @remarks   The field is written as a whole (01 range 1, 10 range 2, 11 range 3) and the regulator
  *            is given the time to settle, before and after.
  **************************************************************************************************/
-static HAL_Return_Code HAL_CLOCK_SetVoltage(uint8_t p_ucVoltage)
+static HAL_RETURN_CODE_T HAL_CLOCK_SetVoltage(uint8_t p_ucVoltage)
 {
-	HAL_Return_Code l_eReturnCode = HAL_CLOCK_Wait(&PWR->CSR, PWR_CSR_VOSF, 0, HAL_CLOCK_TIMEOUT_MS);
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_CLOCK_Wait(&PWR->CSR, PWR_CSR_VOSF, 0, HAL_CLOCK_TIMEOUT_MS);
 
 	if (l_eReturnCode == HAL_SUCCESS)
 	{
@@ -290,9 +290,9 @@ static HAL_Return_Code HAL_CLOCK_SetVoltage(uint8_t p_ucVoltage)
  * @param[in] p_ucVoltage - the core voltage range
  * @return    HAL_SUCCESS, or HAL_ERROR when the flash interface refuses the setting
  **************************************************************************************************/
-static HAL_Return_Code HAL_CLOCK_SetLatency(uint32_t p_ulCoreClock, uint8_t p_ucVoltage)
+static HAL_RETURN_CODE_T HAL_CLOCK_SetLatency(uint32_t p_ulCoreClock, uint8_t p_ucVoltage)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
 
 	if (p_ulCoreClock > g_aulHAL_CLOCK_NoWaitLimit[p_ucVoltage])
 	{
@@ -333,9 +333,9 @@ static HAL_Return_Code HAL_CLOCK_SetLatency(uint32_t p_ulCoreClock, uint8_t p_uc
  * @param[in] p_ucMode - HAL_CLOCK_OSCILLATOR__CRYSTAL or HAL_CLOCK_OSCILLATOR__BYPASS
  * @return    HAL_SUCCESS or HAL_ERROR__TIMEOUT (no crystal, no external clock)
  **************************************************************************************************/
-static HAL_Return_Code HAL_CLOCK_StartHse(uint8_t p_ucMode)
+static HAL_RETURN_CODE_T HAL_CLOCK_StartHse(uint8_t p_ucMode)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
 	uint32_t l_ulBypass = (p_ucMode == HAL_CLOCK_OSCILLATOR__BYPASS) ? RCC_CR_HSEBYP : 0U;
 
 	if (((RCC->CR & (RCC_CR_HSEON | RCC_CR_HSERDY)) != (RCC_CR_HSEON | RCC_CR_HSERDY)) || ((RCC->CR & RCC_CR_HSEBYP) != l_ulBypass))
@@ -368,9 +368,9 @@ static HAL_Return_Code HAL_CLOCK_StartHse(uint8_t p_ucMode)
  * @remarks   An oscillator that already runs in the requested mode is left alone, so the RTC is
  *            not disturbed.
  **************************************************************************************************/
-static HAL_Return_Code HAL_CLOCK_ConfigLse(uint8_t p_ucMode)
+static HAL_RETURN_CODE_T HAL_CLOCK_ConfigLse(uint8_t p_ucMode)
 {
-	HAL_Return_Code l_eReturnCode = HAL_SUCCESS;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_SUCCESS;
 	uint32_t l_ulBypass = (p_ucMode == HAL_CLOCK_OSCILLATOR__BYPASS) ? RCC_CSR_LSEBYP : 0U;
 	bool l_bRunning = (RCC->CSR & (RCC_CSR_LSEON | RCC_CSR_LSERDY)) == (RCC_CSR_LSEON | RCC_CSR_LSERDY);
 
@@ -422,11 +422,11 @@ static HAL_Return_Code HAL_CLOCK_ConfigLse(uint8_t p_ucMode)
  * @param[in] p_pstFlags - the clock flags
  * @return    HAL_SUCCESS, HAL_ERROR__PARAMETER, HAL_ERROR__TIMEOUT or HAL_ERROR
  **************************************************************************************************/
-static HAL_Return_Code HAL_CLOCK_Apply(const HAL_CLOCK_Flags *p_pstFlags)
+static HAL_RETURN_CODE_T HAL_CLOCK_Apply(const HAL_CLOCK_FLAGS_T *p_pstFlags)
 {
-	static const HAL_ClockGate l_stPower = { &RCC->APB1ENR, RCC_APB1ENR_PWREN };
-	HAL_Return_Code l_eReturnCode;
-	HAL_Return_Code l_eLseReturnCode;
+	static const HAL_CLOCK_GATE_T l_stPower = { &RCC->APB1ENR, RCC_APB1ENR_PWREN };
+	HAL_RETURN_CODE_T l_eReturnCode;
+	HAL_RETURN_CODE_T l_eLseReturnCode;
 	uint32_t l_ulCoreClock = 0;
 	uint32_t l_ulSwitch = RCC_CFGR_SW_MSI;
 	uint32_t l_ulStatus = RCC_CFGR_SWS_MSI;
@@ -615,9 +615,9 @@ static HAL_Return_Code HAL_CLOCK_Apply(const HAL_CLOCK_Flags *p_pstFlags)
  *            the application can report the problem or try another configuration. When only the
  *            LSE fails, the system clock is as requested and HAL_ERROR__TIMEOUT is returned.
  **************************************************************************************************/
-HAL_Return_Code HAL_CLOCK_Init(const HAL_CLOCK_Flags *p_pstFlags)
+HAL_RETURN_CODE_T HAL_CLOCK_Init(const HAL_CLOCK_FLAGS_T *p_pstFlags)
 {
-	HAL_Return_Code l_eReturnCode = HAL_ERROR__PARAMETER;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_ERROR__PARAMETER;
 
 	if (p_pstFlags != NULL)
 	{
@@ -647,9 +647,9 @@ HAL_Return_Code HAL_CLOCK_Init(const HAL_CLOCK_Flags *p_pstFlags)
  * @remarks   Modules that derive a divider from a bus clock (UART baud rate, SPI speed, I2C
  *            timing) must be configured again afterwards.
  **************************************************************************************************/
-HAL_Return_Code HAL_CLOCK_Update(const HAL_CLOCK_Flags *p_pstFlags)
+HAL_RETURN_CODE_T HAL_CLOCK_Update(const HAL_CLOCK_FLAGS_T *p_pstFlags)
 {
-	HAL_Return_Code l_eReturnCode = HAL_ERROR__PARAMETER;
+	HAL_RETURN_CODE_T l_eReturnCode = HAL_ERROR__PARAMETER;
 
 	if (p_pstFlags != NULL)
 	{
@@ -663,7 +663,7 @@ HAL_Return_Code HAL_CLOCK_Update(const HAL_CLOCK_Flags *p_pstFlags)
  * @brief      Gets the configuration that is applied now
  * @param[out] p_pstFlags - the clock flags
  **************************************************************************************************/
-void HAL_CLOCK_GetFlags(HAL_CLOCK_Flags *p_pstFlags)
+void HAL_CLOCK_GetFlags(HAL_CLOCK_FLAGS_T *p_pstFlags)
 {
 	if (p_pstFlags != NULL)
 	{
@@ -772,7 +772,7 @@ uint32_t HAL_CLOCK_GetTimer(uint8_t p_ucBus)
  * @remarks Used by modules clocked by the HSI (the ADC). Each request must be released once.
  *          HAL_CLOCK_Update keeps the HSI on while requests are open.
  **************************************************************************************************/
-HAL_Return_Code HAL_CLOCK_RequestHsi(void)
+HAL_RETURN_CODE_T HAL_CLOCK_RequestHsi(void)
 {
 	uint32_t l_ulState = HAL_PRIVATE_EnterCritical();
 
@@ -851,7 +851,7 @@ void HAL_CLOCK_SetTickState(uint8_t p_ucState)
  * @remarks    The time is measured on the SysTick counter itself, not on the tick interrupt: a
  *             timeout works with interrupts masked and inside any interrupt handler.
  **************************************************************************************************/
-void HAL_CLOCK_TimeoutStart(HAL_CLOCK_Timeout *p_pstTimeout, uint32_t p_ulMilliseconds)
+void HAL_CLOCK_TimeoutStart(HAL_CLOCK_TIMEOUT_T *p_pstTimeout, uint32_t p_ulMilliseconds)
 {
 	uint32_t l_ulLimit = 0xFFFFFFFFUL / g_ulHAL_CLOCK_TicksPerMs;
 
@@ -872,7 +872,7 @@ void HAL_CLOCK_TimeoutStart(HAL_CLOCK_Timeout *p_pstTimeout, uint32_t p_ulMillis
  *                does. When the time base is not running (HAL_CLOCK_Init was not called) the
  *                timeout is reported as expired at once: a wait then fails instead of hanging.
  **************************************************************************************************/
-bool HAL_CLOCK_TimeoutExpired(HAL_CLOCK_Timeout *p_pstTimeout)
+bool HAL_CLOCK_TimeoutExpired(HAL_CLOCK_TIMEOUT_T *p_pstTimeout)
 {
 	bool l_bExpired = true;
 	uint32_t l_ulNow;
@@ -907,7 +907,7 @@ bool HAL_CLOCK_TimeoutExpired(HAL_CLOCK_Timeout *p_pstTimeout)
  **************************************************************************************************/
 void HAL_CLOCK_Delay(uint32_t p_ulMilliseconds)
 {
-	HAL_CLOCK_Timeout l_stTimeout;
+	HAL_CLOCK_TIMEOUT_T l_stTimeout;
 	uint32_t l_ulStep;
 
 	while (p_ulMilliseconds != 0U)
@@ -932,7 +932,7 @@ void HAL_CLOCK_Delay(uint32_t p_ulMilliseconds)
  **************************************************************************************************/
 void HAL_CLOCK_DelayUs(uint32_t p_ulMicroseconds)
 {
-	HAL_CLOCK_Timeout l_stTimeout;
+	HAL_CLOCK_TIMEOUT_T l_stTimeout;
 
 	HAL_CLOCK_Delay(p_ulMicroseconds / 1000U);
 
