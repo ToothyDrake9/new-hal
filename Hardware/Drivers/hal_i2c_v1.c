@@ -13,6 +13,7 @@
 #include "hal_calc.h"
 #include "hal_private.h"
 
+#define HAL_I2C_STANDARD_SPEED 100000UL
 #define HAL_I2C_ERROR_FLAGS (I2C_SR1_AF | I2C_SR1_BERR | I2C_SR1_ARLO | I2C_SR1_OVR)
 
 typedef struct
@@ -466,7 +467,13 @@ HAL_RETURN_CODE_T HAL_I2C_Config(uint8_t p_ucModule, const HAL_I2C_FLAGS_T *p_ps
 		l_pstState->m_ucConfigured = HAL_DISABLE;
 
 		/* Set the timing, from the clock of the bus the module sits on. */
-		l_eReturnCode = HAL_CALC_I2cTiming(HAL_CLOCK_GetBus(l_pstDevice->m_ucBus), p_pstFlags->m_ulSpeed, &l_pstState->m_unFrequency, &l_pstState->m_unClockControl, &l_pstState->m_unRiseTime);
+		l_eReturnCode = HAL_CALC_I2cTiming(HAL_CLOCK_GetBus(l_pstDevice->m_ucBus), p_pstFlags->m_ulSpeed, I2C_CCR_CCR, &l_pstState->m_unFrequency, &l_pstState->m_unClockControl, &l_pstState->m_unRiseTime);
+
+		/* Above 100 kHz the module runs in fast mode. */
+		if ((l_eReturnCode == HAL_SUCCESS) && (p_pstFlags->m_ulSpeed > HAL_I2C_STANDARD_SPEED))
+		{
+			l_pstState->m_unClockControl |= I2C_CCR_FS;
+		}
 
 		if (l_eReturnCode == HAL_SUCCESS)
 		{

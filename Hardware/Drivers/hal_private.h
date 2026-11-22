@@ -70,6 +70,7 @@ typedef struct
 	DMA_TypeDef *m_pstRegisters;
 	HAL_CLOCK_GATE_T m_stClock;
 	uint8_t m_ucChannels;
+	DMA_Channel_TypeDef *m_apstChannel[HAL_DMA_CHANNEL_NO];
 	IRQn_Type m_aeIRQn[HAL_DMA_CHANNEL_NO];
 }HAL_DMA_DEVICE_T;
 

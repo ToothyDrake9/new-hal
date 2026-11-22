@@ -120,13 +120,18 @@ SysTick_Type *SIM_SysTick(void)
 	return SIM_SYSTICK;
 }
 
+/* Sizes of the simulated ranges: the peripherals, the core registers and the flash. */
+#define SIM_PERIPHERAL_SIZE 0x30000UL
+#define SIM_CORE_SIZE       0x1000UL
+#define SIM_FLASH_SIZE      0x80000UL
+
 /**************************************************************************************************
  * @brief   Puts the simulated registers in their state after reset
  **************************************************************************************************/
 static void SIM_Reset(void)
 {
-	memset((void *) 0x40000000UL, 0, 0x30000);
-	memset((void *) 0xE000E000UL, 0, 0x1000);
+	memset((void *) PERIPH_BASE, 0, SIM_PERIPHERAL_SIZE);
+	memset((void *) SCS_BASE, 0, SIM_CORE_SIZE);
 
 	RCC->CR = RCC_CR_MSION | RCC_CR_MSIRDY;
 	RCC->ICSCR = 5UL << RCC_ICSCR_MSIRANGE_Pos;
@@ -700,6 +705,16 @@ static void TEST_Buses(void)
 	TEST_CHECK(I2C1->CR2 == 32U);
 	TEST_CHECK(I2C1->CCR == 160U);
 	TEST_CHECK(I2C1->TRISE == 33U);
+
+	/* Above 100 kHz the driver sets the fast mode bit next to the divider. */
+	l_stI2c.m_ulSpeed = 400000;
+	TEST_CHECK(HAL_I2C_Config(HAL_I2C_0, &l_stI2c) == HAL_SUCCESS);
+	TEST_CHECK(I2C1->CCR == (I2C_CCR_FS | 27U));
+	TEST_CHECK(I2C1->TRISE == 10U);
+	l_stI2c.m_ulSpeed = 100000;
+	TEST_CHECK(HAL_I2C_Config(HAL_I2C_0, &l_stI2c) == HAL_SUCCESS);
+	TEST_CHECK(I2C1->CCR == 160U);
+
 	TEST_CHECK((GPIOB->OTYPER & (3UL << 8)) == (3UL << 8));                     /* Open drain */
 	TEST_CHECK(HAL_I2C_IsDeviceReady(HAL_I2C_0, 0x50) == HAL_ERROR__NOT_CONFIGURED);  /* Not enabled */
 	TEST_CHECK(HAL_I2C_SetState(HAL_I2C_0, HAL_ENABLE) == HAL_SUCCESS);
@@ -776,9 +791,9 @@ static void TEST_Others(void)
 	TEST_CHECK(DMA1->IFCR == (0x0FUL << 8));
 	TEST_CHECK(HAL_DMA_SetInterrupt(HAL_DMA_0, HAL_DMA_CHANNEL_2, HAL_DMA_COMPLETE, HAL_ENABLE) == HAL_SUCCESS);
 	TEST_CHECK(HAL_DMA_SetInterrupt(HAL_DMA_0, HAL_DMA_CHANNEL_2, HAL_DMA_HALF, HAL_ENABLE) == HAL_ERROR__NOT_CONFIGURED);
-	TEST_CHECK(HAL_DMA_Start(HAL_DMA_0, HAL_DMA_CHANNEL_2, 0x40004404UL, 0x20000100UL, 0) == HAL_ERROR__PARAMETER);
-	TEST_CHECK(HAL_DMA_Start(HAL_DMA_0, HAL_DMA_CHANNEL_2, 0x40004404UL, 0x20000100UL, 12) == HAL_SUCCESS);
-	TEST_CHECK(DMA1_Channel3->CPAR == 0x40004404UL);
+	TEST_CHECK(HAL_DMA_Start(HAL_DMA_0, HAL_DMA_CHANNEL_2, (uint32_t) (uintptr_t) &USART2->DR, SRAM_BASE + 0x100UL, 0) == HAL_ERROR__PARAMETER);
+	TEST_CHECK(HAL_DMA_Start(HAL_DMA_0, HAL_DMA_CHANNEL_2, (uint32_t) (uintptr_t) &USART2->DR, SRAM_BASE + 0x100UL, 12) == HAL_SUCCESS);
+	TEST_CHECK(DMA1_Channel3->CPAR == (uint32_t) (uintptr_t) &USART2->DR);
 	TEST_CHECK(DMA1_Channel3->CMAR == 0x20000100UL);
 	TEST_CHECK(DMA1_Channel3->CNDTR == 12U);
 	TEST_CHECK((DMA1_Channel3->CCR & (DMA_CCR_EN | DMA_CCR_TCIE)) == (DMA_CCR_EN | DMA_CCR_TCIE));
@@ -799,16 +814,16 @@ static void TEST_Others(void)
 	TEST_CHECK((RCC->AHBENR & RCC_AHBENR_CRCEN) != 0U);
 
 	/* Flash: locked and out of range requests are refused before anything is written. */
-	TEST_CHECK(HAL_FLASH_Program(0x08000000UL, 0) == HAL_ERROR__NOT_CONFIGURED);
+	TEST_CHECK(HAL_FLASH_Program(FLASH_BASE, 0) == HAL_ERROR__NOT_CONFIGURED);
 	TEST_CHECK(HAL_FLASH_PageErase(HAL_FLASH_GetPageCount()) == HAL_ERROR__PARAMETER);
 	TEST_CHECK(HAL_FLASH_GetPageCount() == 2048U);
 	TEST_CHECK(HAL_FLASH_GetPageAddress(2047) == 0x0807FF00UL);
 	FLASH->PECR = 0;
-	TEST_CHECK(HAL_FLASH_Program(0x08000002UL, 0) == HAL_ERROR__PARAMETER);
+	TEST_CHECK(HAL_FLASH_Program(FLASH_BASE + 2UL, 0) == HAL_ERROR__PARAMETER);
 	TEST_CHECK(HAL_FLASH_Program(0x08080000UL, 0) == HAL_ERROR__PARAMETER);
 	TEST_CHECK(HAL_FLASH_ProgramBuff(0x0807FFFCUL, &l_ulValue, 2) == HAL_ERROR__PARAMETER);
 	FLASH->SR = FLASH_SR_BSY;
-	TEST_CHECK(HAL_FLASH_Program(0x08000000UL, 0) == HAL_ERROR__BUSY);
+	TEST_CHECK(HAL_FLASH_Program(FLASH_BASE, 0) == HAL_ERROR__BUSY);
 	FLASH->SR = 0;
 	TEST_CHECK(HAL_FLASH_Lock() == HAL_SUCCESS);
 	TEST_CHECK(FLASH->PECR == (FLASH_PECR_PELOCK | FLASH_PECR_PRGLOCK));
@@ -850,9 +865,9 @@ static void TEST_Others(void)
 
 int main(void)
 {
-	if ((mmap((void *) 0x40000000UL, 0x30000, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, -1, 0) == MAP_FAILED)
-		|| (mmap((void *) 0xE000E000UL, 0x1000, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, -1, 0) == MAP_FAILED)
-		|| (mmap((void *) 0x08000000UL, 0x80000, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, -1, 0) == MAP_FAILED))
+	if ((mmap((void *) PERIPH_BASE, SIM_PERIPHERAL_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, -1, 0) == MAP_FAILED)
+		|| (mmap((void *) SCS_BASE, SIM_CORE_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, -1, 0) == MAP_FAILED)
+		|| (mmap((void *) FLASH_BASE, SIM_FLASH_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, -1, 0) == MAP_FAILED))
 	{
 		printf("Cannot map the simulated register ranges on this machine\n");
 

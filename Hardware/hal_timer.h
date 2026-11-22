@@ -25,7 +25,6 @@ enum HAL_TIMER_Direction
 	HAL_TIMER_DIRECTION__DOWN
 };
 
-/* The values are the bit positions of the events in the status register. */
 enum HAL_TIMER_Interrupts
 {
 	HAL_TIMER_UPDATE = ((uint8_t) 0x00),

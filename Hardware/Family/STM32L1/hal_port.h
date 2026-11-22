@@ -4,13 +4,15 @@
  * @author  Andustria
  * @date    November 2026
  * @changes Created
- * @remarks This is the only family specific header the public HAL headers include. It does not
- *          include the CMSIS device header, so application files never see the registers.
+ * @remarks This is the only family specific header the public HAL headers include. It brings in
+ *          the CMSIS device header: registers, addresses and bit names are defined there and
+ *          nowhere else. The HAL does not restate them.
  **************************************************************************************************/
 #ifndef HAL_PORT_H_
 #define HAL_PORT_H_
 
 #include "typedefs.h"
+#include "stm32l1xx.h"
 
 /* Capabilities of this family. Modules that are missing return HAL_ERROR__NOT_SUPPORTED. */
 #define HAL_HAS_RNG   0
@@ -108,27 +110,7 @@ enum HAL_DMA_Module
 #define HAL_FLASH_PAGE_SIZE      256U
 #define HAL_FLASH_HALF_PAGE_SIZE 128U
 
-/*
- * GPIO fast path. The registers are described here a second time, on purpose: the inline
- * read and write functions of hal_gpio.h must not pull the device header into the application.
- * A static assertion in the GPIO driver checks this layout against the CMSIS one.
- */
-typedef struct
-{
-	volatile uint32_t MODER;
-	volatile uint32_t OTYPER;
-	volatile uint32_t OSPEEDR;
-	volatile uint32_t PUPDR;
-	volatile uint32_t IDR;
-	volatile uint32_t ODR;
-	volatile uint32_t BSRR;
-	volatile uint32_t LCKR;
-	volatile uint32_t AFR[2];
-	volatile uint32_t BRR;
-}HAL_GPIO_REGISTERS_T;
-
-/* The ports are not in alphabetical order in memory on this family: A B C D E H F G. */
-#define HAL_GPIO_ADDRESS_TABLE { 0x40020000UL, 0x40020400UL, 0x40020800UL, 0x40020C00UL, \
-                                 0x40021000UL, 0x40021800UL, 0x40021C00UL, 0x40021400UL }
+/* The GPIO ports, in the order of the HAL_GPIO_Module values. */
+#define HAL_GPIO_PORT_TABLE { GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG, GPIOH }
 
 #endif /* HAL_PORT_H_ */

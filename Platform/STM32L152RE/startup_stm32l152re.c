@@ -8,6 +8,7 @@
  *          handlers of the modules they serve; the application may define any other one.
  **************************************************************************************************/
 #include <stdint.h>
+#include "stm32l1xx.h"
 
 /* Symbols of the linker script. */
 extern uint32_t _estack;
@@ -181,8 +182,8 @@ const HAL_VECTOR_T g_apfVectors[] =
  **************************************************************************************************/
 __attribute__((weak)) void SystemInit(void)
 {
-	/* Point the core to the vector table (SCB->VTOR). */
-	*(volatile uint32_t *) 0xE000ED08UL = (uint32_t) (uintptr_t) g_apfVectors;
+	/* Point the core to the vector table. */
+	SCB->VTOR = (uint32_t) (uintptr_t) g_apfVectors;
 }
 
 /**************************************************************************************************

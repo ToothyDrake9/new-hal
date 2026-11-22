@@ -142,7 +142,7 @@ int main(void)
 	/* DMA. */
 	l_ulErrors += HAL_DMA_Config(HAL_DMA_0, HAL_DMA_CHANNEL_0, &l_stDma);
 	l_ulErrors += HAL_DMA_SetInterrupt(HAL_DMA_0, HAL_DMA_CHANNEL_0, HAL_DMA_COMPLETE, HAL_ENABLE);
-	l_ulErrors += HAL_DMA_Start(HAL_DMA_0, HAL_DMA_CHANNEL_0, 0x40012458UL, (uint32_t) (uintptr_t) l_aucBuff, sizeof(l_aucBuff));
+	l_ulErrors += HAL_DMA_Start(HAL_DMA_0, HAL_DMA_CHANNEL_0, (uint32_t) (uintptr_t) &ADC1->DR, (uint32_t) (uintptr_t) l_aucBuff, sizeof(l_aucBuff));
 	l_ulErrors += HAL_DMA_GetRemaining(HAL_DMA_0, HAL_DMA_CHANNEL_0, &l_unValue);
 	l_ulErrors += HAL_DMA_Stop(HAL_DMA_0, HAL_DMA_CHANNEL_0);
 

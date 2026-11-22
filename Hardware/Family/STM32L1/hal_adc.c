@@ -206,9 +206,9 @@ HAL_RETURN_CODE_T HAL_ADC_ConfigChannel(uint8_t p_ucModule, uint8_t p_ucChannel,
 			l_pulRegister = &ADC1->SMPR1;
 		}
 
-		l_ulShift = 3UL * (p_ucChannel % 10U);
+		l_ulShift = (ADC_SMPR3_SMP1_Pos - ADC_SMPR3_SMP0_Pos) * (p_ucChannel % 10U);
 
-		HAL_PRIVATE_Modify(l_pulRegister, 0x07UL << l_ulShift, (uint32_t) p_pstFlags->m_ucSampleTime << l_ulShift);
+		HAL_PRIVATE_Modify(l_pulRegister, (uint32_t) ADC_SMPR3_SMP0 << l_ulShift, (uint32_t) p_pstFlags->m_ucSampleTime << l_ulShift);
 
 		if ((p_ucChannel == HAL_ADC_CHANNEL__TEMPERATURE) || (p_ucChannel == HAL_ADC_CHANNEL__VREFINT))
 		{

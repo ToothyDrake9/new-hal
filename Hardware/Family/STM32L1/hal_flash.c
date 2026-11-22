@@ -15,6 +15,12 @@
 #define HAL_FLASH_HALF_PAGE_WORDS (HAL_FLASH_HALF_PAGE_SIZE / 4U)
 #define HAL_FLASH_PAGE_COUNT ((uint16_t) ((FLASH_END + 1UL - FLASH_BASE) / HAL_FLASH_PAGE_SIZE))
 
+/* Unlock keys of the reference manual. The device header does not define them. */
+#define HAL_FLASH_PEKEY1  0x89ABCDEFUL
+#define HAL_FLASH_PEKEY2  0x02030405UL
+#define HAL_FLASH_PRGKEY1 0x8C9DAEBFUL
+#define HAL_FLASH_PRGKEY2 0x13141516UL
+
 /* Code placed in RAM: it runs while the flash memory cannot be read. */
 #define HAL_FLASH_RAM_FUNCTION __attribute__((section(".ramfunc"), noinline, long_call))
 
@@ -132,14 +138,14 @@ HAL_RETURN_CODE_T HAL_FLASH_Unlock(void)
 	/* The two keys of a pair must be written one after the other. */
 	if (FLASH->PECR & FLASH_PECR_PELOCK)
 	{
-		FLASH->PEKEYR = 0x89ABCDEFUL;
-		FLASH->PEKEYR = 0x02030405UL;
+		FLASH->PEKEYR = HAL_FLASH_PEKEY1;
+		FLASH->PEKEYR = HAL_FLASH_PEKEY2;
 	}
 
 	if (FLASH->PECR & FLASH_PECR_PRGLOCK)
 	{
-		FLASH->PRGKEYR = 0x8C9DAEBFUL;
-		FLASH->PRGKEYR = 0x13141516UL;
+		FLASH->PRGKEYR = HAL_FLASH_PRGKEY1;
+		FLASH->PRGKEYR = HAL_FLASH_PRGKEY2;
 	}
 
 	HAL_PRIVATE_ExitCritical(l_ulState);

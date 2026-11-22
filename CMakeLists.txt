@@ -63,17 +63,18 @@ list(APPEND HAL_COMPILE_OPTIONS ${HAL_EXTRA_C_FLAGS_LIST})
 
 # The HAL, as a static library. Only the drivers that the application calls are linked.
 add_library(hal STATIC ${HAL_DRIVER_SOURCES} ${HAL_FAMILY_SOURCES})
-target_compile_definitions(hal PRIVATE ${HAL_DEVICE_DEFINE})
+# The public headers use the CMSIS device header, so the application gets it as well.
+target_compile_definitions(hal PUBLIC ${HAL_DEVICE_DEFINE})
 target_compile_options(hal PRIVATE ${HAL_COMPILE_OPTIONS})
 target_include_directories(hal
 	PUBLIC
 		Globals
 		Hardware
 		Hardware/Family/${HAL_FAMILY}
-	PRIVATE
-		Hardware/Drivers
 		Platform/${HAL_DEVICE}
 		Platform/${HAL_DEVICE}/CMSIS
+	PRIVATE
+		Hardware/Drivers
 )
 
 # The flash driver keeps one function in RAM, next to the data. Newer linkers warn about a

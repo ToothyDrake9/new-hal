@@ -19,6 +19,10 @@ typedef struct
 	uint8_t m_ucConfigured;
 }HAL_DMA_CHANNEL_STATE_T;
 
+/* The flags of channel 1, and how far the flags of another channel are from them. */
+#define HAL_DMA_ALL_FLAGS (DMA_IFCR_CGIF1 | DMA_IFCR_CTCIF1 | DMA_IFCR_CHTIF1 | DMA_IFCR_CTEIF1)
+#define HAL_DMA_SHIFT(p_ucChannel) ((uint32_t) (p_ucChannel) * (DMA_IFCR_CGIF2_Pos - DMA_IFCR_CGIF1_Pos))
+
 static HAL_DMA_CHANNEL_STATE_T g_astHAL_DMA_State[HAL_DMA_NO][HAL_DMA_CHANNEL_NO];
 
 /**************************************************************************************************
@@ -29,7 +33,7 @@ static HAL_DMA_CHANNEL_STATE_T g_astHAL_DMA_State[HAL_DMA_NO][HAL_DMA_CHANNEL_NO
  **************************************************************************************************/
 static DMA_Channel_TypeDef *HAL_DMA_GetChannel(uint8_t p_ucModule, uint8_t p_ucChannel)
 {
-	return (DMA_Channel_TypeDef *) ((uint32_t) g_astHAL_DMA_Device[p_ucModule].m_pstRegisters + 0x08UL + (0x14UL * p_ucChannel));
+	return g_astHAL_DMA_Device[p_ucModule].m_apstChannel[p_ucChannel];
 }
 
 /**************************************************************************************************
@@ -92,7 +96,7 @@ HAL_RETURN_CODE_T HAL_DMA_Config(uint8_t p_ucModule, uint8_t p_ucChannel, const 
 
 		/* Stop the channel and clear its flags (they are cleared by writing 1). */
 		l_pstChannel->CCR = 0;
-		l_pstDevice->m_pstRegisters->IFCR = 0x0FUL << (4U * p_ucChannel);
+		l_pstDevice->m_pstRegisters->IFCR = HAL_DMA_ALL_FLAGS << HAL_DMA_SHIFT(p_ucChannel);
 
 		l_pstState->m_pfCompleteCallback = p_pstFlags->m_pfCompleteCallback;
 		l_pstState->m_pfHalfCallback = p_pstFlags->m_pfHalfCallback;
@@ -171,7 +175,7 @@ HAL_RETURN_CODE_T HAL_DMA_Start(uint8_t p_ucModule, uint8_t p_ucChannel, uint32_
 		/* The addresses and the count can only be written while the channel is disabled. */
 		HAL_PRIVATE_Modify(&l_pstChannel->CCR, DMA_CCR_EN, 0);
 
-		g_astHAL_DMA_Device[p_ucModule].m_pstRegisters->IFCR = 0x0FUL << (4U * p_ucChannel);
+		g_astHAL_DMA_Device[p_ucModule].m_pstRegisters->IFCR = HAL_DMA_ALL_FLAGS << HAL_DMA_SHIFT(p_ucChannel);
 
 		l_pstChannel->CPAR = p_ulPeripheralAddress;
 		l_pstChannel->CMAR = p_ulMemoryAddress;
@@ -197,7 +201,7 @@ HAL_RETURN_CODE_T HAL_DMA_Stop(uint8_t p_ucModule, uint8_t p_ucChannel)
 	{
 		HAL_PRIVATE_Modify(&HAL_DMA_GetChannel(p_ucModule, p_ucChannel)->CCR, DMA_CCR_EN, 0);
 
-		g_astHAL_DMA_Device[p_ucModule].m_pstRegisters->IFCR = 0x0FUL << (4U * p_ucChannel);
+		g_astHAL_DMA_Device[p_ucModule].m_pstRegisters->IFCR = HAL_DMA_ALL_FLAGS << HAL_DMA_SHIFT(p_ucChannel);
 	}
 
 	return l_eReturnCode;
@@ -292,13 +296,13 @@ static void HAL_DMA_Interrupt(uint8_t p_ucModule, uint8_t p_ucChannel)
 	const HAL_DMA_CHANNEL_STATE_T *l_pstState = &g_astHAL_DMA_State[p_ucModule][p_ucChannel];
 	DMA_TypeDef *l_pstDma = g_astHAL_DMA_Device[p_ucModule].m_pstRegisters;
 	uint32_t l_ulControl = HAL_DMA_GetChannel(p_ucModule, p_ucChannel)->CCR;
-	uint32_t l_ulShift = 4UL * p_ucChannel;
+	uint32_t l_ulShift = HAL_DMA_SHIFT(p_ucChannel);
 	uint32_t l_ulStatus = l_pstDma->ISR >> l_ulShift;
 
-	/* Flags of a channel: bit 1 complete, bit 2 half, bit 3 error. They are cleared by writing 1. */
-	if ((l_ulStatus & 0x08U) && (l_ulControl & DMA_CCR_TEIE))
+	/* The flags are cleared by writing 1 to their clear bits. */
+	if ((l_ulStatus & DMA_ISR_TEIF1) && (l_ulControl & DMA_CCR_TEIE))
 	{
-		l_pstDma->IFCR = 0x08UL << l_ulShift;
+		l_pstDma->IFCR = DMA_IFCR_CTEIF1 << l_ulShift;
 
 		if (l_pstState->m_pfErrorCallback != NULL)
 		{
@@ -306,9 +310,9 @@ static void HAL_DMA_Interrupt(uint8_t p_ucModule, uint8_t p_ucChannel)
 		}
 	}
 
-	if ((l_ulStatus & 0x04U) && (l_ulControl & DMA_CCR_HTIE))
+	if ((l_ulStatus & DMA_ISR_HTIF1) && (l_ulControl & DMA_CCR_HTIE))
 	{
-		l_pstDma->IFCR = 0x04UL << l_ulShift;
+		l_pstDma->IFCR = DMA_IFCR_CHTIF1 << l_ulShift;
 
 		if (l_pstState->m_pfHalfCallback != NULL)
 		{
@@ -316,9 +320,9 @@ static void HAL_DMA_Interrupt(uint8_t p_ucModule, uint8_t p_ucChannel)
 		}
 	}
 
-	if ((l_ulStatus & 0x02U) && (l_ulControl & DMA_CCR_TCIE))
+	if ((l_ulStatus & DMA_ISR_TCIF1) && (l_ulControl & DMA_CCR_TCIE))
 	{
-		l_pstDma->IFCR = 0x02UL << l_ulShift;
+		l_pstDma->IFCR = DMA_IFCR_CTCIF1 << l_ulShift;
 
 		if (l_pstState->m_pfCompleteCallback != NULL)
 		{

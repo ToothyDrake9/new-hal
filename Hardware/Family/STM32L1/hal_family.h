@@ -9,7 +9,7 @@
 #ifndef HAL_FAMILY_H_
 #define HAL_FAMILY_H_
 
-#include "stm32l1xx.h"
+#include "hal_port.h"
 
 /* Limits of the clock tree, in Hz. Index: HAL_CLOCK_VOLTAGE__RANGE_1 to 3. */
 #define HAL_FAMILY_HSI_FREQUENCY      16000000UL
@@ -18,6 +18,13 @@
 #define HAL_FAMILY_FLASH_0WS_LIMITS   { 16000000UL, 8000000UL, 2100000UL }
 #define HAL_FAMILY_PLL_INPUT_MINIMUM  2000000UL
 #define HAL_FAMILY_PLL_INPUT_MAXIMUM  24000000UL
+
+/* GPIO field of pin 0 in each register: the bit names differ between families. */
+#define HAL_FAMILY_GPIO_MODE     GPIO_MODER_MODER0
+#define HAL_FAMILY_GPIO_TYPE     GPIO_OTYPER_OT_0
+#define HAL_FAMILY_GPIO_SPEED    GPIO_OSPEEDER_OSPEEDR0
+#define HAL_FAMILY_GPIO_PULL     GPIO_PUPDR_PUPDR0
+#define HAL_FAMILY_GPIO_FUNCTION GPIO_AFRL_AFSEL0
 
 /* EXTI registers: their names differ between families. */
 #define HAL_FAMILY_EXTI_IMR  (EXTI->IMR)
@@ -33,9 +40,9 @@
  **************************************************************************************************/
 static inline void HAL_FAMILY_SelectExti(uint8_t p_ucPin, uint8_t p_ucCode)
 {
-	uint32_t l_ulShift = 4UL * (p_ucPin & 0x03U);
+	uint32_t l_ulShift = 4UL * (p_ucPin % 4U);
 
-	SYSCFG->EXTICR[p_ucPin >> 2] = (SYSCFG->EXTICR[p_ucPin >> 2] & ~(0x0FUL << l_ulShift)) | ((uint32_t) p_ucCode << l_ulShift);
+	SYSCFG->EXTICR[p_ucPin >> 2] = (SYSCFG->EXTICR[p_ucPin >> 2] & ~((uint32_t) SYSCFG_EXTICR1_EXTI0 << l_ulShift)) | ((uint32_t) p_ucCode << l_ulShift);
 }
 
 /**************************************************************************************************

@@ -35,8 +35,8 @@ Hardware/Drivers/                  One driver per peripheral version, shared bet
     hal_spi_v1.c  hal_i2c_v1.c  hal_timer_v1.c  hal_dma_v1.c  hal_dac_v1.c
     hal_private.h                    Shared by the HAL sources only
 Hardware/Family/STM32L1/           What is specific to one family.
-    hal_port.h                       Module instances, visible to the application
-    hal_family.h                     Device header and family differences, HAL sources only
+    hal_port.h                       Device header and module instances, visible to the application
+    hal_family.h                     Family differences and limits, HAL sources only
     hal_family_irq.h                 Interrupt vectors of each driver
     hal_devices.c                    Where each instance is: registers, clock gate, IRQ
     hal_clock.c hal_adc.c hal_flash.c hal_crc.c hal_lpm.c hal_unsupported.c
@@ -131,7 +131,11 @@ int main(void)
 7. **One interrupt source can be disabled without touching the others.** The NVIC line of a
    module is enabled when it is configured with a callback.
 8. **Registers shared with interrupt handlers are modified with interrupts masked.**
-9. **Public headers do not include the device header.** Application files never see a register.
+9. **The CMSIS device header is the only definition of the hardware.** Registers, addresses, bit
+   names and field values are used by their device header names. The HAL defines a name of its
+   own only for what the device header does not have (the flash unlock keys, the flash page
+   size, the oscillator and clock limits) and for what the application chooses (module
+   numbers, settings). `hal_port.h` includes the device header, so the application sees it too.
 10. **Tables are `const`.** The RAM a module needs is its callbacks and a few status bytes.
 
 ## What changed for code written for the old HAL
@@ -198,7 +202,7 @@ The radio driver and the TSCH stack of WirelessControl have not been migrated.
 | 26 | Structures passed by value | `const` pointers |
 | 27 | Pin write was a function with a switch | `static inline` in `hal_gpio.h`; a toggle is 7 instructions |
 | 28 | No time base | 1 ms tick, `HAL_CLOCK_Delay`, `HAL_CLOCK_DelayUs`, timeouts |
-| 29 | Device header leaked into the application | Only `hal_private.h` includes it |
+| 29 | Device header leaked into the application | Reversed on request: `hal_port.h` includes it, so that the HAL redefines nothing (rule 9) |
 | 30 | One function per instance and per mode | `HAL_LPM_Enter(mode)`; one interrupt function per driver |
 | 31 | Sources missing, Debug build shipped | Sources here; Release is `-Os` |
 | 32 | Lookup tables in RAM | `const` tables in `hal_devices.c` |
@@ -254,6 +258,8 @@ Everything, since nothing has run on a board yet. In order of risk:
    need two new ones: `hal_uart_v2.c` (USART with `ISR`/`ICR`/`RDR`/`TDR`) and `hal_i2c_v2.c`
    (I2C with `TIMINGR`).
 3. Add the family to `CMakeLists.txt` and a directory under `Platform` and `Board`.
+4. Take every register, address and bit from the device header of the new family (rule 9). When
+   a name differs between families, `hal_family.h` gives it one alias; it never copies a value.
 
 Rules for `hal_uart_v2.c`, from review points 41 and 42: clear flags by writing `ICR`, never by
 writing `ISR`; do not use `RXFRQ` to acknowledge a byte that the callback still has to receive;

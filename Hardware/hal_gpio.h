@@ -138,16 +138,16 @@ HAL_RETURN_CODE_T HAL_GPIO_ReleaseInterrupt(uint8_t p_ucModule, uint8_t p_ucPin)
  * Pin access. These are inline so that a call with constant arguments becomes a single store.
  * They do not check their arguments: p_ucModule and p_ucPin must be valid.
  */
-static const uint32_t g_aulHAL_GPIO_Address[HAL_GPIO_NO] = HAL_GPIO_ADDRESS_TABLE;
+static GPIO_TypeDef *const g_apstHAL_GPIO_Port[HAL_GPIO_NO] = HAL_GPIO_PORT_TABLE;
 
 /**************************************************************************************************
  * @brief     Gets the registers of a GPIO module
  * @param[in] p_ucModule - the GPIO module (e.g. HAL_GPIO_0)
  * @return    The register block
  **************************************************************************************************/
-static inline HAL_GPIO_REGISTERS_T *HAL_GPIO_GetRegisters(uint8_t p_ucModule)
+static inline GPIO_TypeDef *HAL_GPIO_GetRegisters(uint8_t p_ucModule)
 {
-	return (HAL_GPIO_REGISTERS_T *) g_aulHAL_GPIO_Address[p_ucModule];
+	return g_apstHAL_GPIO_Port[p_ucModule];
 }
 
 /**************************************************************************************************
@@ -171,7 +171,7 @@ static inline uint8_t HAL_GPIO_Read(uint8_t p_ucModule, uint8_t p_ucPin)
  **************************************************************************************************/
 static inline void HAL_GPIO_Write(uint8_t p_ucModule, uint8_t p_ucPin, uint8_t p_ucState)
 {
-	HAL_GPIO_REGISTERS_T *l_pstPort = HAL_GPIO_GetRegisters(p_ucModule);
+	GPIO_TypeDef *l_pstPort = HAL_GPIO_GetRegisters(p_ucModule);
 	uint32_t l_ulSet = 1UL << p_ucPin;
 	uint32_t l_ulReset = 1UL << (p_ucPin + 16U);
 

@@ -155,7 +155,7 @@ HAL_RETURN_CODE_T HAL_UART_Config(uint8_t p_ucModule, const HAL_UART_FLAGS_T *p_
 		l_pstDevice = &g_astHAL_UART_Device[p_ucModule];
 
 		/* Set the baud rate, from the clock of the bus the module sits on. */
-		l_eReturnCode = HAL_CALC_UartDivider(HAL_CLOCK_GetBus(l_pstDevice->m_ucBus), p_pstFlags->m_ulBaud, &l_ulDivider);
+		l_eReturnCode = HAL_CALC_UartDivider(HAL_CLOCK_GetBus(l_pstDevice->m_ucBus), p_pstFlags->m_ulBaud, USART_BRR_DIV_MANTISSA | USART_BRR_DIV_FRACTION, &l_ulDivider);
 	}
 
 	if (l_eReturnCode == HAL_SUCCESS)
@@ -213,7 +213,7 @@ HAL_RETURN_CODE_T HAL_UART_Config(uint8_t p_ucModule, const HAL_UART_FLAGS_T *p_
 
 		l_pstUart->CR2 = l_ulControl2;
 		l_pstUart->CR3 = l_ulControl3;
-		l_pstUart->GTPR = p_pstFlags->m_ucIrDA ? 0x01U : 0x00U;
+		l_pstUart->GTPR = p_pstFlags->m_ucIrDA ? USART_GTPR_PSC_0 : 0U;
 		l_pstUart->BRR = l_ulDivider;
 		l_pstUart->CR1 = l_ulControl1;
 

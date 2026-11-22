@@ -11,16 +11,6 @@
 #include "hal_clock.h"
 #include "hal_private.h"
 
-/* The address table of hal_port.h must agree with the device header. */
-_Static_assert(GPIOA_BASE == 0x40020000UL, "GPIO address");
-_Static_assert(GPIOB_BASE == 0x40020400UL, "GPIO address");
-_Static_assert(GPIOC_BASE == 0x40020800UL, "GPIO address");
-_Static_assert(GPIOD_BASE == 0x40020C00UL, "GPIO address");
-_Static_assert(GPIOE_BASE == 0x40021000UL, "GPIO address");
-_Static_assert(GPIOF_BASE == 0x40021800UL, "GPIO address");
-_Static_assert(GPIOG_BASE == 0x40021C00UL, "GPIO address");
-_Static_assert(GPIOH_BASE == 0x40021400UL, "GPIO address");
-
 const HAL_CLOCK_GATE_T g_astHAL_GPIO_Clock[HAL_GPIO_NO] =
 {
 	{ &RCC->AHBENR, RCC_AHBENR_GPIOAEN },
@@ -33,8 +23,12 @@ const HAL_CLOCK_GATE_T g_astHAL_GPIO_Clock[HAL_GPIO_NO] =
 	{ &RCC->AHBENR, RCC_AHBENR_GPIOHEN }
 };
 
-/* Port code in the EXTI routing register. It follows the memory order: A B C D E H F G. */
-const uint8_t g_aucHAL_GPIO_ExtiCode[HAL_GPIO_NO] = { 0, 1, 2, 3, 4, 6, 7, 5 };
+/* Port code in the EXTI routing register, as the device header names it for line 0. */
+const uint8_t g_aucHAL_GPIO_ExtiCode[HAL_GPIO_NO] =
+{
+	SYSCFG_EXTICR1_EXTI0_PA, SYSCFG_EXTICR1_EXTI0_PB, SYSCFG_EXTICR1_EXTI0_PC, SYSCFG_EXTICR1_EXTI0_PD,
+	SYSCFG_EXTICR1_EXTI0_PE, SYSCFG_EXTICR1_EXTI0_PF, SYSCFG_EXTICR1_EXTI0_PG, SYSCFG_EXTICR1_EXTI0_PH
+};
 
 const IRQn_Type g_aeHAL_GPIO_IRQn[16] =
 {
@@ -82,10 +76,12 @@ const HAL_DMA_DEVICE_T g_astHAL_DMA_Device[HAL_DMA_NO] =
 {
 	{
 		DMA1, { &RCC->AHBENR, RCC_AHBENR_DMA1EN }, 7,
+		{ DMA1_Channel1, DMA1_Channel2, DMA1_Channel3, DMA1_Channel4, DMA1_Channel5, DMA1_Channel6, DMA1_Channel7 },
 		{ DMA1_Channel1_IRQn, DMA1_Channel2_IRQn, DMA1_Channel3_IRQn, DMA1_Channel4_IRQn, DMA1_Channel5_IRQn, DMA1_Channel6_IRQn, DMA1_Channel7_IRQn }
 	},
 	{
 		DMA2, { &RCC->AHBENR, RCC_AHBENR_DMA2EN }, 5,
+		{ DMA2_Channel1, DMA2_Channel2, DMA2_Channel3, DMA2_Channel4, DMA2_Channel5, NULL, NULL },
 		{ DMA2_Channel1_IRQn, DMA2_Channel2_IRQn, DMA2_Channel3_IRQn, DMA2_Channel4_IRQn, DMA2_Channel5_IRQn, DMA2_Channel5_IRQn, DMA2_Channel5_IRQn }
 	}
 };

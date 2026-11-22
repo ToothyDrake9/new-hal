@@ -20,6 +20,16 @@ typedef struct
 
 static HAL_TIMER_MODULE_STATE_T g_astHAL_TIMER_State[HAL_TIMER_NO];
 
+/* Status flag and interrupt enable bit of each event. Index: HAL_TIMER_UPDATE, HAL_TIMER_COMPARE1, ... */
+static const uint32_t g_aulHAL_TIMER_Flag[HAL_TIMER_INTERRUPT_NO] = { TIM_SR_UIF, TIM_SR_CC1IF, TIM_SR_CC2IF, TIM_SR_CC3IF, TIM_SR_CC4IF };
+static const uint32_t g_aulHAL_TIMER_Enable[HAL_TIMER_INTERRUPT_NO] = { TIM_DIER_UIE, TIM_DIER_CC1IE, TIM_DIER_CC2IE, TIM_DIER_CC3IE, TIM_DIER_CC4IE };
+
+/* Fields of channel 1, and how far the fields of the next channel are from them. */
+#define HAL_TIMER_MODE_FIELDS  (TIM_CCMR1_CC1S | TIM_CCMR1_OC1FE | TIM_CCMR1_OC1PE | TIM_CCMR1_OC1M | TIM_CCMR1_OC1CE)
+#define HAL_TIMER_MODE_SHIFT   (TIM_CCMR1_OC2M_Pos - TIM_CCMR1_OC1M_Pos)
+#define HAL_TIMER_OUTPUT_FIELDS (TIM_CCER_CC1E | TIM_CCER_CC1P | TIM_CCER_CC1NP)
+#define HAL_TIMER_OUTPUT_SHIFT (TIM_CCER_CC2E_Pos - TIM_CCER_CC1E_Pos)
+
 /**************************************************************************************************
  * @brief     Checks a module argument
  * @param[in] p_ucModule - the TIMER module (e.g. HAL_TIMER_0)
@@ -217,7 +227,7 @@ HAL_RETURN_CODE_T HAL_TIMER_Config(uint8_t p_ucModule, const HAL_TIMER_FLAGS_T *
 HAL_RETURN_CODE_T HAL_TIMER_ConfigChannel(uint8_t p_ucModule, uint8_t p_ucCompare, const HAL_TIMER_CHANNEL_FLAGS_T *p_pstFlags)
 {
 	static const HAL_GPIO_FLAGS_T l_stPinFlags = { HAL_GPIO_MODE__FUNCTION, HAL_GPIO_TYPE__PUSH_PULL, HAL_GPIO_PULL__NO_PULL, HAL_GPIO_SPEED__HIGH, 0 };
-	static const uint8_t l_aucMode[] = { 0x00, 0x03, 0x06, 0x07 }; // Frozen, toggle, PWM 1, PWM 2
+	static const uint32_t l_aulMode[] = { 0, TIM_CCMR1_OC1M_0 | TIM_CCMR1_OC1M_1, TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2, TIM_CCMR1_OC1M }; // Frozen, toggle, PWM 1, PWM 2
 	HAL_RETURN_CODE_T l_eReturnCode = HAL_TIMER_Check(p_ucModule);
 	const HAL_TIMER_DEVICE_T *l_pstDevice = NULL;
 	volatile uint32_t *l_pulMode;
@@ -253,22 +263,22 @@ HAL_RETURN_CODE_T HAL_TIMER_ConfigChannel(uint8_t p_ucModule, uint8_t p_ucCompar
 		l_pstTimer = l_pstDevice->m_pstRegisters;
 		l_ucChannel = (uint8_t) (p_ucCompare - HAL_TIMER_COMPARE1);
 		l_pulMode = (l_ucChannel < 2U) ? &l_pstTimer->CCMR1 : &l_pstTimer->CCMR2;
-		l_ulShift = 8UL * (l_ucChannel & 1U);
+		l_ulShift = HAL_TIMER_MODE_SHIFT * (l_ucChannel % 2U);
 
 		l_ulState = HAL_PRIVATE_EnterCritical();
 
 		/* Disable the output while it changes. */
-		l_pstTimer->CCER &= ~(0x0FUL << (4U * l_ucChannel));
+		l_pstTimer->CCER &= ~((uint32_t) HAL_TIMER_OUTPUT_FIELDS << (HAL_TIMER_OUTPUT_SHIFT * l_ucChannel));
 
 		/* Set the compare register. */
 		*HAL_TIMER_GetCompareRegister(l_pstTimer, p_ucCompare) = p_pstFlags->m_ulCompare;
 
 		/* Set the output mode: the channel is an output, without preload. */
-		*l_pulMode = (*l_pulMode & ~(0xFFUL << l_ulShift)) | (((uint32_t) l_aucMode[p_pstFlags->m_ucOutput] << 4) << l_ulShift);
+		*l_pulMode = (*l_pulMode & ~((uint32_t) HAL_TIMER_MODE_FIELDS << l_ulShift)) | (l_aulMode[p_pstFlags->m_ucOutput] << l_ulShift);
 
 		if (p_pstFlags->m_ucOutput != HAL_TIMER_OUTPUT__NONE)
 		{
-			l_pstTimer->CCER |= 1UL << (4U * l_ucChannel);
+			l_pstTimer->CCER |= TIM_CCER_CC1E << (HAL_TIMER_OUTPUT_SHIFT * l_ucChannel);
 		}
 
 		HAL_PRIVATE_ExitCritical(l_ulState);
@@ -334,13 +344,13 @@ HAL_RETURN_CODE_T HAL_TIMER_SetInterrupt(uint8_t p_ucModule, uint8_t p_ucInterru
 			if (p_ucState)
 			{
 				/* Clear the interrupt flag: write 0 to it and 1 to all the others. */
-				l_pstTimer->SR = ~(1UL << p_ucInterrupt);
+				l_pstTimer->SR = (uint32_t) ~g_aulHAL_TIMER_Flag[p_ucInterrupt];
 
-				HAL_PRIVATE_Modify(&l_pstTimer->DIER, 0, 1UL << p_ucInterrupt);
+				HAL_PRIVATE_Modify(&l_pstTimer->DIER, 0, g_aulHAL_TIMER_Enable[p_ucInterrupt]);
 			}
 			else
 			{
-				HAL_PRIVATE_Modify(&l_pstTimer->DIER, 1UL << p_ucInterrupt, 0);
+				HAL_PRIVATE_Modify(&l_pstTimer->DIER, g_aulHAL_TIMER_Enable[p_ucInterrupt], 0);
 			}
 		}
 	}
@@ -488,15 +498,16 @@ static void HAL_TIMER_Interrupt(uint8_t p_ucModule)
 {
 	const HAL_TIMER_MODULE_STATE_T *l_pstState = &g_astHAL_TIMER_State[p_ucModule];
 	TIM_TypeDef *l_pstTimer = g_astHAL_TIMER_Device[p_ucModule].m_pstRegisters;
-	uint32_t l_ulPending = l_pstTimer->SR & l_pstTimer->DIER & 0x1FUL;
+	uint32_t l_ulStatus = l_pstTimer->SR;
+	uint32_t l_ulEnabled = l_pstTimer->DIER;
 	uint8_t l_ucInterrupt;
 
 	for (l_ucInterrupt = HAL_TIMER_UPDATE; l_ucInterrupt < HAL_TIMER_INTERRUPT_NO; l_ucInterrupt++)
 	{
-		if (l_ulPending & (1UL << l_ucInterrupt))
+		if ((l_ulStatus & g_aulHAL_TIMER_Flag[l_ucInterrupt]) && (l_ulEnabled & g_aulHAL_TIMER_Enable[l_ucInterrupt]))
 		{
 			/* Clear this flag only: write 0 to it and 1 to all the others. */
-			l_pstTimer->SR = ~(1UL << l_ucInterrupt);
+			l_pstTimer->SR = (uint32_t) ~g_aulHAL_TIMER_Flag[l_ucInterrupt];
 
 			if (l_pstState->m_apfCallback[l_ucInterrupt] != NULL)
 			{

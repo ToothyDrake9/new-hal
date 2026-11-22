@@ -15,10 +15,11 @@
  * @brief      Baud rate divider for 16 times oversampling, rounded to the nearest value
  * @param[in]  p_ulClock - the clock of the UART in Hz (the bus clock, not the system clock)
  * @param[in]  p_ulBaud - the requested baud rate
+ * @param[in]  p_ulMaximum - the largest value the baud rate register can hold
  * @param[out] p_pulDivider - the value for the baud rate register
  * @return     HAL_SUCCESS, or HAL_ERROR__PARAMETER when the baud rate cannot be produced
  **************************************************************************************************/
-static inline HAL_RETURN_CODE_T HAL_CALC_UartDivider(uint32_t p_ulClock, uint32_t p_ulBaud, uint32_t *p_pulDivider)
+static inline HAL_RETURN_CODE_T HAL_CALC_UartDivider(uint32_t p_ulClock, uint32_t p_ulBaud, uint32_t p_ulMaximum, uint32_t *p_pulDivider)
 {
 	HAL_RETURN_CODE_T l_eReturnCode = HAL_ERROR__PARAMETER;
 	uint32_t l_ulDivider;
@@ -27,7 +28,7 @@ static inline HAL_RETURN_CODE_T HAL_CALC_UartDivider(uint32_t p_ulClock, uint32_
 	{
 		l_ulDivider = (p_ulClock + (p_ulBaud / 2U)) / p_ulBaud;
 
-		if ((l_ulDivider >= 16U) && (l_ulDivider <= 0xFFFFU))
+		if ((l_ulDivider >= 16U) && (l_ulDivider <= p_ulMaximum))
 		{
 			*p_pulDivider = l_ulDivider;
 			l_eReturnCode = HAL_SUCCESS;
@@ -41,16 +42,17 @@ static inline HAL_RETURN_CODE_T HAL_CALC_UartDivider(uint32_t p_ulClock, uint32_
  * @brief      SPI prescaler: the fastest clock that does not exceed the requested speed
  * @param[in]  p_ulClock - the clock of the SPI in Hz
  * @param[in]  p_ulSpeed - the highest acceptable SPI clock in Hz
- * @param[out] p_pucCode - the baud rate field (0 is clock/2, 7 is clock/256)
+ * @param[in]  p_ucMaximum - the largest value of the baud rate field (7 for clock/256)
+ * @param[out] p_pucCode - the baud rate field (0 is clock/2, each step halves the clock)
  * @param[out] p_pulSpeed - the SPI clock that is obtained in Hz
- * @return     HAL_SUCCESS, or HAL_ERROR__PARAMETER when even clock/256 is too fast
+ * @return     HAL_SUCCESS, or HAL_ERROR__PARAMETER when even the slowest setting is too fast
  **************************************************************************************************/
-static inline HAL_RETURN_CODE_T HAL_CALC_SpiPrescaler(uint32_t p_ulClock, uint32_t p_ulSpeed, uint8_t *p_pucCode, uint32_t *p_pulSpeed)
+static inline HAL_RETURN_CODE_T HAL_CALC_SpiPrescaler(uint32_t p_ulClock, uint32_t p_ulSpeed, uint8_t p_ucMaximum, uint8_t *p_pucCode, uint32_t *p_pulSpeed)
 {
 	HAL_RETURN_CODE_T l_eReturnCode = HAL_ERROR__PARAMETER;
 	uint8_t l_ucCode;
 
-	for (l_ucCode = 0; l_ucCode < 8U; l_ucCode++)
+	for (l_ucCode = 0; l_ucCode <= p_ucMaximum; l_ucCode++)
 	{
 		if ((p_ulClock >> (l_ucCode + 1U)) <= p_ulSpeed)
 		{
@@ -72,13 +74,14 @@ static inline HAL_RETURN_CODE_T HAL_CALC_SpiPrescaler(uint32_t p_ulClock, uint32
  * @brief      I2C timing for the peripheral with CCR and TRISE registers
  * @param[in]  p_ulClock - the clock of the I2C in Hz
  * @param[in]  p_ulSpeed - the requested bus speed in Hz, up to 400000
- * @param[out] p_punFrequency - the FREQ field (clock in MHz)
- * @param[out] p_punClockControl - the CCR register, fast mode bit included
+ * @param[in]  p_ulMaximum - the largest value of the clock divider field
+ * @param[out] p_punFrequency - the peripheral clock in MHz
+ * @param[out] p_punClockControl - the clock divider; the caller adds the fast mode bit above 100 kHz
  * @param[out] p_punRiseTime - the TRISE register
  * @return     HAL_SUCCESS, or HAL_ERROR__PARAMETER when the clock is too slow for the speed
  * @remarks    The divider is rounded up, so the bus is never faster than requested.
  **************************************************************************************************/
-static inline HAL_RETURN_CODE_T HAL_CALC_I2cTiming(uint32_t p_ulClock, uint32_t p_ulSpeed, uint16_t *p_punFrequency, uint16_t *p_punClockControl, uint16_t *p_punRiseTime)
+static inline HAL_RETURN_CODE_T HAL_CALC_I2cTiming(uint32_t p_ulClock, uint32_t p_ulSpeed, uint32_t p_ulMaximum, uint16_t *p_punFrequency, uint16_t *p_punClockControl, uint16_t *p_punRiseTime)
 {
 	HAL_RETURN_CODE_T l_eReturnCode = HAL_ERROR__PARAMETER;
 	uint32_t l_ulFrequency = p_ulClock / 1000000U;
@@ -94,7 +97,7 @@ static inline HAL_RETURN_CODE_T HAL_CALC_I2cTiming(uint32_t p_ulClock, uint32_t 
 			l_ulClockControl = 4U;
 		}
 
-		if (l_ulClockControl <= 0x0FFFU)
+		if (l_ulClockControl <= p_ulMaximum)
 		{
 			*p_punFrequency = (uint16_t) l_ulFrequency;
 			*p_punClockControl = (uint16_t) l_ulClockControl;
@@ -112,10 +115,10 @@ static inline HAL_RETURN_CODE_T HAL_CALC_I2cTiming(uint32_t p_ulClock, uint32_t 
 			l_ulClockControl = 1U;
 		}
 
-		if (l_ulClockControl <= 0x0FFFU)
+		if (l_ulClockControl <= p_ulMaximum)
 		{
 			*p_punFrequency = (uint16_t) l_ulFrequency;
-			*p_punClockControl = (uint16_t) (l_ulClockControl | 0x8000U);
+			*p_punClockControl = (uint16_t) l_ulClockControl;
 			*p_punRiseTime = (uint16_t) (((l_ulFrequency * 300U) / 1000U) + 1U); /* 300 ns */
 			l_eReturnCode = HAL_SUCCESS;
 		}

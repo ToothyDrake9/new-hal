@@ -23,6 +23,18 @@ static const uint32_t g_aulHAL_CLOCK_NoWaitLimit[] = HAL_FAMILY_FLASH_0WS_LIMITS
 static const uint8_t g_aucHAL_CLOCK_Multiplier[] = { 3, 4, 6, 8, 12, 16, 24, 32, 48 };
 static const uint8_t g_aucHAL_CLOCK_AhbShift[] = { 0, 1, 2, 3, 4, 6, 7, 8, 9 };
 
+/* Register values of the settings, in the order of the HAL enumerations. Used in both directions:
+ * to program a setting and to find out which setting is programmed. */
+static const uint32_t g_aulHAL_CLOCK_VoltageCode[] = { PWR_CR_VOS_0, PWR_CR_VOS_1, PWR_CR_VOS };
+static const uint32_t g_aulHAL_CLOCK_MsiCode[] = { RCC_ICSCR_MSIRANGE_0, RCC_ICSCR_MSIRANGE_1, RCC_ICSCR_MSIRANGE_2, RCC_ICSCR_MSIRANGE_3, RCC_ICSCR_MSIRANGE_4, RCC_ICSCR_MSIRANGE_5, RCC_ICSCR_MSIRANGE_6 };
+static const uint32_t g_aulHAL_CLOCK_MultiplierCode[] = { RCC_CFGR_PLLMUL3, RCC_CFGR_PLLMUL4, RCC_CFGR_PLLMUL6, RCC_CFGR_PLLMUL8, RCC_CFGR_PLLMUL12, RCC_CFGR_PLLMUL16, RCC_CFGR_PLLMUL24, RCC_CFGR_PLLMUL32, RCC_CFGR_PLLMUL48 };
+static const uint32_t g_aulHAL_CLOCK_DividerCode[] = { RCC_CFGR_PLLDIV2, RCC_CFGR_PLLDIV3, RCC_CFGR_PLLDIV4 };
+static const uint32_t g_aulHAL_CLOCK_AhbCode[] = { RCC_CFGR_HPRE_DIV1, RCC_CFGR_HPRE_DIV2, RCC_CFGR_HPRE_DIV4, RCC_CFGR_HPRE_DIV8, RCC_CFGR_HPRE_DIV16, RCC_CFGR_HPRE_DIV64, RCC_CFGR_HPRE_DIV128, RCC_CFGR_HPRE_DIV256, RCC_CFGR_HPRE_DIV512 };
+static const uint32_t g_aulHAL_CLOCK_Apb1Code[] = { RCC_CFGR_PPRE1_DIV1, RCC_CFGR_PPRE1_DIV2, RCC_CFGR_PPRE1_DIV4, RCC_CFGR_PPRE1_DIV8, RCC_CFGR_PPRE1_DIV16 };
+static const uint32_t g_aulHAL_CLOCK_Apb2Code[] = { RCC_CFGR_PPRE2_DIV1, RCC_CFGR_PPRE2_DIV2, RCC_CFGR_PPRE2_DIV4, RCC_CFGR_PPRE2_DIV8, RCC_CFGR_PPRE2_DIV16 };
+
+#define HAL_CLOCK_COUNT(p_aTable) ((uint8_t) (sizeof(p_aTable) / sizeof((p_aTable)[0])))
+
 /* CMSIS variable: the core clock (HCLK) in Hz. */
 uint32_t SystemCoreClock = 2097152UL;
 
@@ -63,6 +75,53 @@ static HAL_RETURN_CODE_T HAL_CLOCK_Wait(const volatile uint32_t *p_pulRegister, 
 	}
 
 	return l_eReturnCode;
+}
+
+/**************************************************************************************************
+ * @brief     Finds which setting a register field holds
+ * @param[in] p_pulTable - the register values of the settings
+ * @param[in] p_ucSize - the number of settings
+ * @param[in] p_ulCode - the value read from the field
+ * @return    The index of the setting; 0 when the value is not in the table (the prescaler fields
+ *            have several values for "not divided")
+ **************************************************************************************************/
+static uint8_t HAL_CLOCK_Decode(const uint32_t *p_pulTable, uint8_t p_ucSize, uint32_t p_ulCode)
+{
+	uint8_t l_ucIndex = 0;
+	uint8_t l_ucSearch;
+
+	for (l_ucSearch = 0; l_ucSearch < p_ucSize; l_ucSearch++)
+	{
+		if (p_pulTable[l_ucSearch] == p_ulCode)
+		{
+			l_ucIndex = l_ucSearch;
+
+			break;
+		}
+	}
+
+	return l_ucIndex;
+}
+
+/**************************************************************************************************
+ * @brief     Finds which prescaler setting an APB bus has
+ * @param[in] p_ucBus - HAL_CLOCK_BUS__APB1 or HAL_CLOCK_BUS__APB2
+ * @return    The index of the setting: the bus clock is the core clock shifted right by it
+ **************************************************************************************************/
+static uint8_t HAL_CLOCK_GetApbPrescaler(uint8_t p_ucBus)
+{
+	uint8_t l_ucIndex;
+
+	if (p_ucBus == HAL_CLOCK_BUS__APB1)
+	{
+		l_ucIndex = HAL_CLOCK_Decode(g_aulHAL_CLOCK_Apb1Code, HAL_CLOCK_COUNT(g_aulHAL_CLOCK_Apb1Code), RCC->CFGR & RCC_CFGR_PPRE1);
+	}
+	else
+	{
+		l_ucIndex = HAL_CLOCK_Decode(g_aulHAL_CLOCK_Apb2Code, HAL_CLOCK_COUNT(g_aulHAL_CLOCK_Apb2Code), RCC->CFGR & RCC_CFGR_PPRE2);
+	}
+
+	return l_ucIndex;
 }
 
 /**************************************************************************************************
@@ -236,7 +295,7 @@ static HAL_RETURN_CODE_T HAL_CLOCK_EnterTransit(void)
 
 	if (l_eReturnCode == HAL_SUCCESS)
 	{
-		RCC->ICSCR = (RCC->ICSCR & ~RCC_ICSCR_MSIRANGE) | ((uint32_t) HAL_CLOCK_TRANSIT_RANGE << RCC_ICSCR_MSIRANGE_Pos);
+		RCC->ICSCR = (RCC->ICSCR & ~RCC_ICSCR_MSIRANGE) | g_aulHAL_CLOCK_MsiCode[HAL_CLOCK_TRANSIT_RANGE];
 		l_eReturnCode = HAL_CLOCK_Wait(&RCC->CR, RCC_CR_MSIRDY, RCC_CR_MSIRDY, HAL_CLOCK_TIMEOUT_MS);
 	}
 
@@ -276,7 +335,7 @@ static HAL_RETURN_CODE_T HAL_CLOCK_SetVoltage(uint8_t p_ucVoltage)
 
 	if (l_eReturnCode == HAL_SUCCESS)
 	{
-		HAL_PRIVATE_Modify(&PWR->CR, PWR_CR_VOS, ((uint32_t) p_ucVoltage + 1U) << PWR_CR_VOS_Pos);
+		HAL_PRIVATE_Modify(&PWR->CR, PWR_CR_VOS, g_aulHAL_CLOCK_VoltageCode[p_ucVoltage]);
 
 		l_eReturnCode = HAL_CLOCK_Wait(&PWR->CSR, PWR_CSR_VOSF, 0, HAL_CLOCK_TIMEOUT_MS);
 	}
@@ -488,8 +547,8 @@ static HAL_RETURN_CODE_T HAL_CLOCK_Apply(const HAL_CLOCK_FLAGS_T *p_pstFlags)
 		{
 			RCC->CFGR = (RCC->CFGR & ~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLMUL | RCC_CFGR_PLLDIV))
 				| ((p_pstFlags->m_ucPllSource == HAL_CLOCK_SOURCE__HSE) ? RCC_CFGR_PLLSRC : 0U)
-				| ((uint32_t) p_pstFlags->m_ucPllMultiplier << RCC_CFGR_PLLMUL_Pos)
-				| (((uint32_t) p_pstFlags->m_ucPllDivider + 1U) << RCC_CFGR_PLLDIV_Pos);
+				| g_aulHAL_CLOCK_MultiplierCode[p_pstFlags->m_ucPllMultiplier]
+				| g_aulHAL_CLOCK_DividerCode[p_pstFlags->m_ucPllDivider];
 
 			RCC->CR |= RCC_CR_PLLON;
 			l_eReturnCode = HAL_CLOCK_Wait(&RCC->CR, RCC_CR_PLLRDY, RCC_CR_PLLRDY, HAL_CLOCK_TIMEOUT_MS);
@@ -498,7 +557,7 @@ static HAL_RETURN_CODE_T HAL_CLOCK_Apply(const HAL_CLOCK_FLAGS_T *p_pstFlags)
 		/* Set the final MSI range. */
 		if ((l_eReturnCode == HAL_SUCCESS) && (p_pstFlags->m_ucSource == HAL_CLOCK_SOURCE__MSI))
 		{
-			RCC->ICSCR = (RCC->ICSCR & ~RCC_ICSCR_MSIRANGE) | ((uint32_t) p_pstFlags->m_ucMsiRange << RCC_ICSCR_MSIRANGE_Pos);
+			RCC->ICSCR = (RCC->ICSCR & ~RCC_ICSCR_MSIRANGE) | g_aulHAL_CLOCK_MsiCode[p_pstFlags->m_ucMsiRange];
 			l_eReturnCode = HAL_CLOCK_Wait(&RCC->CR, RCC_CR_MSIRDY, RCC_CR_MSIRDY, HAL_CLOCK_TIMEOUT_MS);
 		}
 
@@ -532,9 +591,9 @@ static HAL_RETURN_CODE_T HAL_CLOCK_Apply(const HAL_CLOCK_FLAGS_T *p_pstFlags)
 			}
 
 			RCC->CFGR = (RCC->CFGR & ~(RCC_CFGR_HPRE | RCC_CFGR_PPRE1 | RCC_CFGR_PPRE2))
-				| ((p_pstFlags->m_ucAhbPrescaler ? (0x07UL + p_pstFlags->m_ucAhbPrescaler) : 0U) << RCC_CFGR_HPRE_Pos)
-				| ((p_pstFlags->m_ucApb1Prescaler ? (0x03UL + p_pstFlags->m_ucApb1Prescaler) : 0U) << RCC_CFGR_PPRE1_Pos)
-				| ((p_pstFlags->m_ucApb2Prescaler ? (0x03UL + p_pstFlags->m_ucApb2Prescaler) : 0U) << RCC_CFGR_PPRE2_Pos);
+				| g_aulHAL_CLOCK_AhbCode[p_pstFlags->m_ucAhbPrescaler]
+				| g_aulHAL_CLOCK_Apb1Code[p_pstFlags->m_ucApb1Prescaler]
+				| g_aulHAL_CLOCK_Apb2Code[p_pstFlags->m_ucApb2Prescaler];
 
 			RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | l_ulSwitch;
 			l_eReturnCode = HAL_CLOCK_Wait(&RCC->CFGR, RCC_CFGR_SWS, l_ulStatus, HAL_CLOCK_TIMEOUT_MS);
@@ -686,7 +745,8 @@ uint32_t HAL_CLOCK_Get(void)
 	{
 		case RCC_CFGR_SWS_MSI:
 		{
-			l_ulClock = 65536UL << ((RCC->ICSCR & RCC_ICSCR_MSIRANGE) >> RCC_ICSCR_MSIRANGE_Pos);
+			/* Each MSI range doubles the previous one, starting from 65.536 kHz. */
+			l_ulClock = 65536UL << HAL_CLOCK_Decode(g_aulHAL_CLOCK_MsiCode, HAL_CLOCK_COUNT(g_aulHAL_CLOCK_MsiCode), RCC->ICSCR & RCC_ICSCR_MSIRANGE);
 
 			break;
 		}
@@ -705,9 +765,10 @@ uint32_t HAL_CLOCK_Get(void)
 		case RCC_CFGR_SWS_PLL:
 		{
 			l_ulClock = (RCC->CFGR & RCC_CFGR_PLLSRC) ? g_ulHAL_CLOCK_HseFrequency : HAL_FAMILY_HSI_FREQUENCY;
-			l_ulClock *= g_aucHAL_CLOCK_Multiplier[(RCC->CFGR & RCC_CFGR_PLLMUL) >> RCC_CFGR_PLLMUL_Pos];
+			l_ulClock *= g_aucHAL_CLOCK_Multiplier[HAL_CLOCK_Decode(g_aulHAL_CLOCK_MultiplierCode, HAL_CLOCK_COUNT(g_aulHAL_CLOCK_MultiplierCode), RCC->CFGR & RCC_CFGR_PLLMUL)];
 
-			l_ulDivider = ((RCC->CFGR & RCC_CFGR_PLLDIV) >> RCC_CFGR_PLLDIV_Pos) + 1U;
+			/* The settings are divide by 2, 3 and 4. */
+			l_ulDivider = 2UL + HAL_CLOCK_Decode(g_aulHAL_CLOCK_DividerCode, HAL_CLOCK_COUNT(g_aulHAL_CLOCK_DividerCode), RCC->CFGR & RCC_CFGR_PLLDIV);
 			l_ulClock /= l_ulDivider;
 
 			break;
@@ -726,23 +787,13 @@ uint32_t HAL_CLOCK_Get(void)
 uint32_t HAL_CLOCK_GetBus(uint8_t p_ucBus)
 {
 	uint32_t l_ulClock = HAL_CLOCK_Get();
-	uint32_t l_ulCode = (RCC->CFGR & RCC_CFGR_HPRE) >> RCC_CFGR_HPRE_Pos;
 
-	/* AHB prescaler: 0xxx is 1, then 2, 4, 8, 16, 64, 128, 256, 512. */
-	if (l_ulCode >= 8U)
-	{
-		l_ulClock >>= g_aucHAL_CLOCK_AhbShift[l_ulCode - 7U];
-	}
+	l_ulClock >>= g_aucHAL_CLOCK_AhbShift[HAL_CLOCK_Decode(g_aulHAL_CLOCK_AhbCode, HAL_CLOCK_COUNT(g_aulHAL_CLOCK_AhbCode), RCC->CFGR & RCC_CFGR_HPRE)];
 
 	if (p_ucBus != HAL_CLOCK_BUS__AHB)
 	{
-		l_ulCode = (p_ucBus == HAL_CLOCK_BUS__APB1) ? ((RCC->CFGR & RCC_CFGR_PPRE1) >> RCC_CFGR_PPRE1_Pos) : ((RCC->CFGR & RCC_CFGR_PPRE2) >> RCC_CFGR_PPRE2_Pos);
-
-		/* APB prescaler: 0xx is 1, then 2, 4, 8, 16. */
-		if (l_ulCode >= 4U)
-		{
-			l_ulClock >>= (l_ulCode - 3U);
-		}
+		/* The APB settings are divide by 1, 2, 4, 8 and 16. */
+		l_ulClock >>= HAL_CLOCK_GetApbPrescaler(p_ucBus);
 	}
 
 	return l_ulClock;
@@ -756,9 +807,8 @@ uint32_t HAL_CLOCK_GetBus(uint8_t p_ucBus)
 uint32_t HAL_CLOCK_GetTimer(uint8_t p_ucBus)
 {
 	uint32_t l_ulClock = HAL_CLOCK_GetBus(p_ucBus);
-	uint32_t l_ulCode = (p_ucBus == HAL_CLOCK_BUS__APB1) ? ((RCC->CFGR & RCC_CFGR_PPRE1) >> RCC_CFGR_PPRE1_Pos) : ((RCC->CFGR & RCC_CFGR_PPRE2) >> RCC_CFGR_PPRE2_Pos);
 
-	if ((p_ucBus != HAL_CLOCK_BUS__AHB) && (l_ulCode >= 4U))
+	if ((p_ucBus != HAL_CLOCK_BUS__AHB) && (HAL_CLOCK_GetApbPrescaler(p_ucBus) != 0U))
 	{
 		l_ulClock *= 2U;
 	}

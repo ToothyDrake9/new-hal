@@ -10,11 +10,6 @@
 #include "hal_gpio.h"
 #include "hal_private.h"
 
-_Static_assert(offsetof(HAL_GPIO_REGISTERS_T, IDR) == offsetof(GPIO_TypeDef, IDR), "GPIO layout");
-_Static_assert(offsetof(HAL_GPIO_REGISTERS_T, ODR) == offsetof(GPIO_TypeDef, ODR), "GPIO layout");
-_Static_assert(offsetof(HAL_GPIO_REGISTERS_T, BSRR) == offsetof(GPIO_TypeDef, BSRR), "GPIO layout");
-_Static_assert(offsetof(HAL_GPIO_REGISTERS_T, AFR) == offsetof(GPIO_TypeDef, AFR), "GPIO layout");
-
 typedef struct
 {
 	HAL_GPIO_CALLBACK_T m_pfCallback; // NULL - the line is free
@@ -43,7 +38,7 @@ HAL_RETURN_CODE_T HAL_GPIO_Config(uint8_t p_ucModule, uint8_t p_ucPin, const HAL
 
 	if ((p_ucModule < HAL_GPIO_NO) && (p_ucPin < HAL_GPIO_PIN_NO) && (p_pstFlags != NULL))
 	{
-		l_pstPort = (GPIO_TypeDef *) g_aulHAL_GPIO_Address[p_ucModule];
+		l_pstPort = g_apstHAL_GPIO_Port[p_ucModule];
 
 		/* Enable the module peripheral clock. */
 		HAL_PRIVATE_ClockEnable(&g_astHAL_GPIO_Clock[p_ucModule]);
@@ -53,22 +48,22 @@ HAL_RETURN_CODE_T HAL_GPIO_Config(uint8_t p_ucModule, uint8_t p_ucPin, const HAL
 		/* Set the alternate function before the mode, so the pin never drives a wrong function. */
 		if (p_pstFlags->m_ucMode == HAL_GPIO_MODE__FUNCTION)
 		{
-			l_ulShift = 4UL * (p_ucPin & 0x07U);
-			l_pstPort->AFR[p_ucPin >> 3] = (l_pstPort->AFR[p_ucPin >> 3] & ~(0x0FUL << l_ulShift)) | ((uint32_t) p_pstFlags->m_ucFunction << l_ulShift);
+			l_ulShift = 4UL * (p_ucPin % 8U);
+			l_pstPort->AFR[p_ucPin / 8U] = (l_pstPort->AFR[p_ucPin / 8U] & ~((uint32_t) HAL_FAMILY_GPIO_FUNCTION << l_ulShift)) | ((uint32_t) p_pstFlags->m_ucFunction << l_ulShift);
 		}
 
 		/* Set the pin type. */
-		l_pstPort->OTYPER = (l_pstPort->OTYPER & ~(1UL << p_ucPin)) | ((uint32_t) p_pstFlags->m_ucType << p_ucPin);
+		l_pstPort->OTYPER = (l_pstPort->OTYPER & ~((uint32_t) HAL_FAMILY_GPIO_TYPE << p_ucPin)) | ((uint32_t) p_pstFlags->m_ucType << p_ucPin);
 
 		/* Set the pin output speed. */
 		l_ulShift = 2UL * p_ucPin;
-		l_pstPort->OSPEEDR = (l_pstPort->OSPEEDR & ~(0x03UL << l_ulShift)) | ((uint32_t) p_pstFlags->m_ucSpeed << l_ulShift);
+		l_pstPort->OSPEEDR = (l_pstPort->OSPEEDR & ~((uint32_t) HAL_FAMILY_GPIO_SPEED << l_ulShift)) | ((uint32_t) p_pstFlags->m_ucSpeed << l_ulShift);
 
 		/* Set the pin resistor. */
-		l_pstPort->PUPDR = (l_pstPort->PUPDR & ~(0x03UL << l_ulShift)) | ((uint32_t) p_pstFlags->m_ucPull << l_ulShift);
+		l_pstPort->PUPDR = (l_pstPort->PUPDR & ~((uint32_t) HAL_FAMILY_GPIO_PULL << l_ulShift)) | ((uint32_t) p_pstFlags->m_ucPull << l_ulShift);
 
 		/* Set the pin mode. */
-		l_pstPort->MODER = (l_pstPort->MODER & ~(0x03UL << l_ulShift)) | ((uint32_t) p_pstFlags->m_ucMode << l_ulShift);
+		l_pstPort->MODER = (l_pstPort->MODER & ~((uint32_t) HAL_FAMILY_GPIO_MODE << l_ulShift)) | ((uint32_t) p_pstFlags->m_ucMode << l_ulShift);
 
 		HAL_PRIVATE_ExitCritical(l_ulState);
 
@@ -99,7 +94,7 @@ HAL_RETURN_CODE_T HAL_GPIO_ConfigPin(const HAL_GPIO_PIN_T *p_pstPin, const HAL_G
 		else
 		{
 			l_stFlags = *p_pstFlags;
-			l_stFlags.m_ucFunction = p_pstPin->m_ucFunction & 0x0FU;
+			l_stFlags.m_ucFunction = p_pstPin->m_ucFunction & HAL_FAMILY_GPIO_FUNCTION;
 
 			l_eReturnCode = HAL_GPIO_Config(p_pstPin->m_ucModule, p_pstPin->m_ucPin, &l_stFlags);
 		}

@@ -113,7 +113,7 @@ HAL_RETURN_CODE_T HAL_SPI_Config(uint8_t p_ucModule, const HAL_SPI_FLAGS_T *p_ps
 		if (p_pstFlags->m_ucMode == HAL_SPI_MODE__MASTER)
 		{
 			/* Set the speed, from the clock of the bus the module sits on. */
-			l_eReturnCode = HAL_CALC_SpiPrescaler(HAL_CLOCK_GetBus(l_pstDevice->m_ucBus), p_pstFlags->m_ulSpeed, &l_ucCode, &l_ulSpeed);
+			l_eReturnCode = HAL_CALC_SpiPrescaler(HAL_CLOCK_GetBus(l_pstDevice->m_ucBus), p_pstFlags->m_ulSpeed, (uint8_t) (SPI_CR1_BR >> SPI_CR1_BR_Pos), &l_ucCode, &l_ulSpeed);
 
 			/* Software slave management, with the internal select held high. */
 			l_ulControl |= SPI_CR1_MSTR | SPI_CR1_SSM | SPI_CR1_SSI | ((uint32_t) l_ucCode << SPI_CR1_BR_Pos);

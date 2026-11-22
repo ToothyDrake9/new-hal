@@ -23,13 +23,13 @@ void EXTI3_IRQHandler(void);
 void EXTI4_IRQHandler(void);
 void EXTI9_5_IRQHandler(void);
 void EXTI15_10_IRQHandler(void);
-void EXTI0_IRQHandler(void) { HAL_GPIO_Interrupt(0x0001UL); }
-void EXTI1_IRQHandler(void) { HAL_GPIO_Interrupt(0x0002UL); }
-void EXTI2_IRQHandler(void) { HAL_GPIO_Interrupt(0x0004UL); }
-void EXTI3_IRQHandler(void) { HAL_GPIO_Interrupt(0x0008UL); }
-void EXTI4_IRQHandler(void) { HAL_GPIO_Interrupt(0x0010UL); }
-void EXTI9_5_IRQHandler(void) { HAL_GPIO_Interrupt(0x03E0UL); }
-void EXTI15_10_IRQHandler(void) { HAL_GPIO_Interrupt(0xFC00UL); }
+void EXTI0_IRQHandler(void) { HAL_GPIO_Interrupt(EXTI_PR_PR0); }
+void EXTI1_IRQHandler(void) { HAL_GPIO_Interrupt(EXTI_PR_PR1); }
+void EXTI2_IRQHandler(void) { HAL_GPIO_Interrupt(EXTI_PR_PR2); }
+void EXTI3_IRQHandler(void) { HAL_GPIO_Interrupt(EXTI_PR_PR3); }
+void EXTI4_IRQHandler(void) { HAL_GPIO_Interrupt(EXTI_PR_PR4); }
+void EXTI9_5_IRQHandler(void) { HAL_GPIO_Interrupt(EXTI_PR_PR5 | EXTI_PR_PR6 | EXTI_PR_PR7 | EXTI_PR_PR8 | EXTI_PR_PR9); }
+void EXTI15_10_IRQHandler(void) { HAL_GPIO_Interrupt(EXTI_PR_PR10 | EXTI_PR_PR11 | EXTI_PR_PR12 | EXTI_PR_PR13 | EXTI_PR_PR14 | EXTI_PR_PR15); }
 #endif
 
 #ifdef HAL_FAMILY_IRQ_UART
